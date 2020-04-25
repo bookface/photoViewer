@@ -12,7 +12,7 @@
   #include <time.h>                       // just for nanosleep
   inline void Sleepy(int secs, int msecs) {
       struct timespec t;
-      t.tv_sec = secs
+      t.tv_sec = secs;
       t.tv_nsec = msecs * 1000 * 1000;
       nanosleep(&t,NULL);
   }
