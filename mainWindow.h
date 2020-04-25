@@ -23,7 +23,7 @@ class MyLabel : public QLabel {
         p.drawPixmap(rect(), *pmap);
         if (_text.length()) {
             p.setPen(QPen(Qt::yellow));
-            p.setFont(QFont("Times", 40, QFont::Bold));
+            p.setFont(QFont("Times", 30, QFont::Bold));
             p.drawText(rect(), Qt::AlignTop, _text);
         }
     }
@@ -37,7 +37,6 @@ class MainWindow : public QMainWindow
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     MyLabel *_label;
-    QLabel *_info;
     void setFullScreen(void);
     void loadImagesFromDirectoryName(const QString &dirName);
     void showImageAndSleep(void);

@@ -36,10 +36,6 @@ MainWindow::MainWindow(QWidget *parent)
     layout()->addWidget(_label);
     setFullScreen();
 
-    _info = new QLabel(this);
-    _info->setText("INFO LABEL");
-//    layout()->addWidget(_info);
-    
 // for testing, load a single image
 
 #ifdef TEST_SINGLE_IMAGE
@@ -111,9 +107,19 @@ void MainWindow::loadImage( const QString &fileName)
         _label->_text = QString("Cant load %1").arg(fileName);
         return;
     }
-    {
+    bool showFileName(true);
+
+    if (showFileName){
         QFileInfo info(fileName);
-        _label->_text = info.baseName();
+    // just display the last directory + the file name
+        QStringList list = fileName.split('/');
+        int sz = list.size();
+        if (sz > 2) {
+            _label->_text = list[sz-2] + "/" + list[sz-1];
+        } else {
+            _label->_text = fileName;
+            
+        }
     }
      _label->setPixmap(QPixmap::fromImage(image));
      float h = _label->pixmap()->height();
@@ -144,36 +150,5 @@ void MainWindow::setFullScreen(void)
 MainWindow::~MainWindow()
 {
     delete _label;
-    delete _info;
 }
 
-#if 0
-
-QImage image("(":/resources/images/images/01n.png");
-
-QPainter* p = new QPainter(address of image to ctor);
-p->setPen(Qt::black);
-p->setFont(QFont("Arial", 12));
-p->drawText(image.rect(), Qt::AlignCenter, "Text on Image/ Value"); //play around to display your text exactly how you need.
-
-QLabel* Label1 = new QLabel();
-Label->setPixmap(QPixmap::fromImage(image));
-Label1->setAlignment(Qt::AlignLeft);
-
-
-
-bool ImageSaver::save(const QString &path) const {    
-  QImage image(img_);
-  QPainter p;
-  if (!p.begin(&image)) return false;
-
-  p.setPen(QPen(Qt::red));
-  p.setFont(QFont("Times", 12, QFont::Bold));
-  p.drawText(image.rect(), Qt::AlignCenter, "Text");
-  p.end();
-
-  return image.save(path);
-}
-
-
-#endif

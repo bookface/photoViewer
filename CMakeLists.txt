@@ -23,15 +23,21 @@ find_package(Qt5 COMPONENTS Core Gui Widgets )
 execute_process(COMMAND ${QMAKE_EXECUTABLE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION)
 message(STATUS "Qt Version: ${QT_VERSION}Location: ${Qt5_DIR}")
 
+if(WIN32)
+    set(winlibs
+        imm32
+        winmm
+        ws2_32
+        Mincore
+        )
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(QT_LIBRARIES
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
-    imm32
-    winmm
-    ws2_32
-    Mincore
+    ${winlibs}
     )
 
 #--------------------------------------------------------------------------
