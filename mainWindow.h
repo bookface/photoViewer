@@ -9,6 +9,25 @@
 #include <QKeyEvent>
 #include <QList>
 #include <QTimer>
+#include <QPainter>
+
+class MyLabel : public QLabel {
+  public:
+    MyLabel(QWidget *parent = nullptr):QLabel(parent) {}
+    QString _text;
+
+  protected:
+    virtual void paintEvent(QPaintEvent *) override {
+        QPainter p(this);
+        const QPixmap *pmap = this->pixmap();
+        p.drawPixmap(rect(), *pmap);
+        if (_text.length()) {
+            p.setPen(QPen(Qt::yellow));
+            p.setFont(QFont("Times", 40, QFont::Bold));
+            p.drawText(rect(), Qt::AlignTop, _text);
+        }
+    }
+};
 
 class MainWindow : public QMainWindow
 {
@@ -17,7 +36,7 @@ class MainWindow : public QMainWindow
   public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    QLabel *_label;
+    MyLabel *_label;
     QLabel *_info;
     void setFullScreen(void);
     void loadImagesFromDirectoryName(const QString &dirName);

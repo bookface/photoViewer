@@ -10,6 +10,14 @@
 
 #include "sleepyTime.h"
 
+//
+// Where photos are
+//
+#define WINDOWS_PHOTO_DIR "G:/share1920x1080"
+#define UNIX_PHOTO_DIR    "/media/pi/Pictures/share1920x1080"
+
+// #define TEST_SINGLE_IMAGE
+
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -21,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     resize(screen.width(),screen.height());
 
 // create a label to show the picture
-    _label = new QLabel(this);
+    _label = new MyLabel(this);
     _label->setSizePolicy(QSizePolicy::Ignored,
                           QSizePolicy::Ignored);
     _label->setScaledContents(true);
@@ -30,23 +38,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     _info = new QLabel(this);
     _info->setText("INFO LABEL");
-    layout()->addWidget(_info);
+//    layout()->addWidget(_info);
     
 // for testing, load a single image
 
-#if 1
+#ifdef TEST_SINGLE_IMAGE
 
     QString path = QDir::currentPath();
     path += "/testimage.jpg";
     cout << "path " << qPrintable(path) << endl;
     loadImage(path);
 
-#else
+#else  // load slideshow
 
 #ifdef _WIN32
-    loadImagesFromDirectoryName("G:/share1920x1080");
+    loadImagesFromDirectoryName(WINDOWS_PHOTO_DIR);
 #else
-    loadImagesFromDirectoryName("/media/pi/Pictures/share1920x1080");
+    loadImagesFromDirectoryName(UNIX_PHOTO_DIR);
     _sleepMode = true;
 #endif
 
@@ -100,8 +108,12 @@ void MainWindow::loadImage( const QString &fileName)
 {
     QImage image;
     if (!image.load(fileName)) {
-        cout << "Cant load " << qPrintable(fileName) << endl;
+        _label->_text = QString("Cant load %1").arg(fileName);
         return;
+    }
+    {
+        QFileInfo info(fileName);
+        _label->_text = info.baseName();
     }
      _label->setPixmap(QPixmap::fromImage(image));
      float h = _label->pixmap()->height();
