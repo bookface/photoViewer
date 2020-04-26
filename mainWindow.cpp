@@ -5,6 +5,7 @@
 #include <QDirIterator>
 #include <QDebug>
 #include <QSettings>
+#include <QMessageBox>
 
 #include <cstdlib>
 #include <iostream>
@@ -33,6 +34,15 @@ MainWindow::MainWindow(QWidget *parent)
     bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
     
     cout << "DIR " << qPrintable(directory) << " " << _sleepMode << endl;
+    {
+        QFileInfo f(directory);
+        if (!f.exists()) {
+            QMessageBox box;
+            box.setText(QString("Photo Directory %1 Not Found").arg(directory));
+            box.exec();
+            exit(0);
+        }
+    }
 
     srand (time(NULL));
     setStyleSheet("QMainWindow {background: 'black';}");
@@ -46,8 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
                           QSizePolicy::Ignored);
     _label->setScaledContents(true);
     layout()->addWidget(_label);
-    setFullScreen();
-
+    
 // for testing, load a single image
 
 #ifdef TEST_SINGLE_IMAGE
@@ -59,7 +68,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 #else  // load slideshow
 
-    loadImagesFromDirectoryName(directory);
+    if (!loadImagesFromDirectoryName(directory)) {
+        QMessageBox box;
+        box.setText("No Images found");
+        box.exec();
+        exit(0);
+    }
+    setFullScreen();
     showImage();
     _imagetimer = new QTimer;
     if (_sleepMode) {
@@ -79,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
     
 }
 
-void MainWindow::loadImagesFromDirectoryName(const QString &dirName)
+bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 {
     QDirIterator it(dirName, QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -90,6 +105,7 @@ void MainWindow::loadImagesFromDirectoryName(const QString &dirName)
             _names.push_back(name);
         }
     }
+    return _names.size() > 0 ? true : false;
 }
 
 void MainWindow::showImageAndSleep(void)
