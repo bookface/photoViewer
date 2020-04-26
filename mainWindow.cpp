@@ -4,6 +4,8 @@
 #include <QLayout>
 #include <QDirIterator>
 #include <QDebug>
+#include <QSettings>
+
 #include <cstdlib>
 #include <iostream>
 #include <time.h>
@@ -15,6 +17,7 @@
 //
 #define WINDOWS_PHOTO_DIR "G:/share1920x1080"
 #define UNIX_PHOTO_DIR    "/media/pi/Pictures/share1920x1080"
+#define UNIX_PF           "/media/pi/B650-9ED4/share"
 
 // #define TEST_SINGLE_IMAGE
 
@@ -23,6 +26,14 @@ using namespace std;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
+    QString   directory = settings.value("Directory",WINDOWS_PHOTO_DIR).value<QString>();
+    bool      _sleepMode = settings.value("SleepMode",false).value<bool>();
+    int       _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
+    bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
+    
+    cout << "DIR " << qPrintable(directory) << " " << _sleepMode << endl;
+
     srand (time(NULL));
     setStyleSheet("QMainWindow {background: 'black';}");
     auto screen = QApplication::desktop()->screenGeometry();
@@ -30,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 // create a label to show the picture
     _label = new MyLabel(this);
+    _label->_displayFileName = displayFileName;
     _label->setSizePolicy(QSizePolicy::Ignored,
                           QSizePolicy::Ignored);
     _label->setScaledContents(true);
@@ -47,13 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 #else  // load slideshow
 
-#ifdef _WIN32
-    loadImagesFromDirectoryName(WINDOWS_PHOTO_DIR);
-#else
-    loadImagesFromDirectoryName(UNIX_PHOTO_DIR);
-    _sleepMode = true;
-#endif
-
+    loadImagesFromDirectoryName(directory);
     showImage();
     _imagetimer = new QTimer;
     if (_sleepMode) {

@@ -15,13 +15,14 @@ class MyLabel : public QLabel {
   public:
     MyLabel(QWidget *parent = nullptr):QLabel(parent) {}
     QString _text;
-
+    bool    _displayFileName = true;
+    
   protected:
     virtual void paintEvent(QPaintEvent *) override {
         QPainter p(this);
         const QPixmap *pmap = this->pixmap();
         p.drawPixmap(rect(), *pmap);
-        if (_text.length()) {
+        if (_displayFileName && _text.length()) {
             p.setPen(QPen(Qt::yellow));
             p.setFont(QFont("Times", 30, QFont::Bold));
             p.drawText(rect(), Qt::AlignTop, _text);
