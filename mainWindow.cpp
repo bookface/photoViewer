@@ -13,27 +13,17 @@
 
 #include "sleepyTime.h"
 
-//
-// Where photos are
-//
-#define WINDOWS_PHOTO_DIR "G:/share1920x1080"
-#define UNIX_PHOTO_DIR    "/media/pi/Pictures/share1920x1080"
-#define UNIX_PF           "/media/pi/B650-9ED4/share"
-
 // #define TEST_SINGLE_IMAGE
-
-using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
-    QString   directory = settings.value("Directory",WINDOWS_PHOTO_DIR).value<QString>();
+    QString   directory = settings.value("Directory","./photos").value<QString>();
     bool      _sleepMode = settings.value("SleepMode",false).value<bool>();
     int       _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
     bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
-    
-    cout << "DIR " << qPrintable(directory) << " " << _sleepMode << endl;
+
     {
         QFileInfo f(directory);
         if (!f.exists()) {
@@ -44,7 +34,10 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
+// init random number generator
     srand (time(NULL));
+
+// fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
     auto screen = QApplication::desktop()->screenGeometry();
     resize(screen.width(),screen.height());
@@ -63,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     QString path = QDir::currentPath();
     path += "/testimage.jpg";
-    cout << "path " << qPrintable(path) << endl;
     loadImage(path);
 
 #else  // load slideshow
@@ -74,20 +66,16 @@ MainWindow::MainWindow(QWidget *parent)
         box.exec();
         exit(0);
     }
-    setFullScreen();
-    showImage();
+
+    setFullScreen();                    // remove window decorations
+    showImage();                        // load initial image
+
+// create timer to display images
     _imagetimer = new QTimer;
-    if (_sleepMode) {
-        connect(_imagetimer, &QTimer::timeout, this,
-                [=]() {
-                    showImageAndSleep();
-                });
-    } else {
-        connect(_imagetimer,&QTimer::timeout, this,
-                [=]() {
-                    showImage();
-                });
-    }
+    connect(_imagetimer,&QTimer::timeout, this,
+            [=]() {
+                showImage();
+            });
     _imagetimer->start(_secondsToShowImage * 1000);
 
 #endif
@@ -108,18 +96,15 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
     return _names.size() > 0 ? true : false;
 }
 
-void MainWindow::showImageAndSleep(void)
-{
-    showImage();
-    Sleepy(_secondsToShowImage / 2 ,0);
-}
-
 void MainWindow::showImage(void)
 {
     _lastN = _currentN;
     int n = rand() % _names.size();
     loadImage(_names[n]);
     _currentN = n;
+    if (_sleepMode) {
+        Sleep(_secondsToShowImage);
+    }
 }
 
 void MainWindow::loadImage( const QString &fileName)
@@ -172,5 +157,6 @@ void MainWindow::setFullScreen(void)
 MainWindow::~MainWindow()
 {
     delete _label;
+    delete _imagetimer;
 }
 

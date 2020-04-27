@@ -40,7 +40,6 @@ class MainWindow : public QMainWindow
     MyLabel *_label;
     void setFullScreen(void);
     bool loadImagesFromDirectoryName(const QString &dirName);
-    void showImageAndSleep(void);
     void showImage(void);
     void loadImage( const QString &fileName);
     int _numFiles = 0;
