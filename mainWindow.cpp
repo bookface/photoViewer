@@ -103,7 +103,7 @@ void MainWindow::showImage(void)
     loadImage(_names[n]);
     _currentN = n;
     if (_sleepMode) {
-        Sleep(_secondsToShowImage);
+        Sleep(_secondsToShowImage * 1000);
     }
 }
 
@@ -132,15 +132,16 @@ void MainWindow::loadImage( const QString &fileName)
      float h = _label->pixmap()->height();
      float w = _label->pixmap()->width();
      auto screen = QApplication::desktop()->screenGeometry();
-     auto scaleH = (float)screen.height() / h;
-     auto scaleW = (float)screen.width() / w;
-     auto scale = scaleH;
+     float scaleH = (float)screen.height() / h;
+     float scaleW = (float)screen.width() / w;
+     float scale = scaleH;
      if (scaleW < scaleH) {
          scale = scaleW;
      }
      _label->resize(w * scale,h * scale);
-     float spaceLeft = (screen.width() - w * scale) / 2.0;
-     _label->move(spaceLeft,0);
+     float spaceLeftW = (screen.width() - w * scale) / 2.f;
+     float spaceLeftH = (screen.width() - w * scale) / 2.f;
+     _label->move(spaceLeftW,spaceLeftH);
 }
 
 void MainWindow::setFullScreen(void)
