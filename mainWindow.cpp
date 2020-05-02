@@ -102,8 +102,9 @@ void MainWindow::showImage(void)
     int n = rand() % _names.size();
     loadImage(_names[n]);
     _currentN = n;
+// sleep for half the display time
     if (_sleepMode) {
-        Sleep(_secondsToShowImage * 1000);
+        Sleep(_secondsToShowImage * 1000 / 2);
     }
 }
 
