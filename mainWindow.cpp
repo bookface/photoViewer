@@ -140,7 +140,7 @@ void MainWindow::loadImage( const QString &fileName)
      }
      _label->resize(w * scale,h * scale);
      float spaceLeftW = (screen.width() - w * scale) / 2.f;
-     float spaceLeftH = (screen.width() - w * scale) / 2.f;
+     float spaceLeftH = (screen.height() - h * scale) / 2.f;
      _label->move(spaceLeftW,spaceLeftH);
 }
 
