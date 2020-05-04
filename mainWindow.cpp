@@ -6,6 +6,9 @@
 #include <QDebug>
 #include <QSettings>
 #include <QMessageBox>
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
+#include <QScreen>
+#endif
 
 #include <cstdlib>
 #include <iostream>
@@ -39,8 +42,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 // fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
+	QScreen* screen = QGuiApplication::primaryScreen();
+	if (screen) {
+		QRect screenGeometry = screen->geometry();
+		resize(screenGeometry.width(), screenGeometry.height());
+	}
+#else
     auto screen = QApplication::desktop()->screenGeometry();
-    resize(screen.width(),screen.height());
+	resize(screen.width(), screen.height());
+#endif
 
 // create a label to show the picture
     _label = new MyLabel(this);
@@ -49,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
                           QSizePolicy::Ignored);
     _label->setScaledContents(true);
     layout()->addWidget(_label);
-    
+
 // for testing, load a single image
 
 #ifdef TEST_SINGLE_IMAGE
@@ -79,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     _imagetimer->start(_secondsToShowImage * 1000);
 
 #endif
-    
+
 }
 
 bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
@@ -126,32 +137,56 @@ void MainWindow::loadImage( const QString &fileName)
             _label->_text = list[sz-2] + "/" + list[sz-1];
         } else {
             _label->_text = fileName;
-            
+
         }
     }
      _label->setPixmap(QPixmap::fromImage(image));
      float h = _label->pixmap()->height();
      float w = _label->pixmap()->width();
+	 float scrWidth = 0.0f;
+	 float scrHeight = 0.0f;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
+	 QScreen* screen = QGuiApplication::primaryScreen();
+	 if (screen) {
+		 QRect screenGeometry = screen->geometry();
+		 scrWidth = (float)screenGeometry.width();
+		 scrHeight = (float)screenGeometry.height();
+	 }
+#else
      auto screen = QApplication::desktop()->screenGeometry();
-     float scaleH = (float)screen.height() / h;
-     float scaleW = (float)screen.width() / w;
+     scrWidth = (float)screen.height();
+     scrHeight = (float)screen.width();
+#endif
+     if (h < 0.01f || w < 0.01f || scrHeight < 0.01f || scrWidth < 0.01f) return;  // prevent divide by zero
+     float scaleH = scrHeight / h;
+     float scaleW = scrWidth / w;
      float scale = scaleH;
      if (scaleW < scaleH) {
          scale = scaleW;
      }
      _label->resize(w * scale,h * scale);
-     float spaceLeftW = (screen.width() - w * scale) / 2.f;
-     float spaceLeftH = (screen.height() - h * scale) / 2.f;
+     float spaceLeftW = (scrWidth - w * scale) / 2.f;
+     float spaceLeftH = (scrHeight - h * scale) / 2.f;
      _label->move(spaceLeftW,spaceLeftH);
 }
 
 void MainWindow::setFullScreen(void)
 {
     setWindowFlags(Qt::FramelessWindowHint);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
+	QScreen* screen = QGuiApplication::primaryScreen();
+	if (screen) {
+		QRect screenGeometry = screen->geometry();
+		auto height = screenGeometry.height();
+		move(0,0);
+		resize(screenGeometry.width(), height);
+	}
+#else
     auto screen = QApplication::desktop()->screenGeometry();
     auto height = screen.height();
     move(0,0);
-    resize(screen.width(),height);
+    resize(screen.width(), height);
+#endif
     show();
 }
 
@@ -161,4 +196,3 @@ MainWindow::~MainWindow()
     delete _label;
     delete _imagetimer;
 }
-
