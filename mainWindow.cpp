@@ -18,7 +18,7 @@
 
 // #define TEST_SINGLE_IMAGE
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
 {
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
@@ -26,6 +26,11 @@ MainWindow::MainWindow(QWidget *parent)
     bool      _sleepMode = settings.value("SleepMode",false).value<bool>();
     int       _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
     bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
+
+	// override settings with command line options
+	if (args.size() > 1) directory = args.at(1);
+	if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
+	if (args.size() > 3) displayFileName = (args.at(3).toInt() != 0);
 
     {
         QFileInfo f(directory);
