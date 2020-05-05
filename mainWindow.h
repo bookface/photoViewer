@@ -16,7 +16,7 @@ class MyLabel : public QLabel {
     MyLabel(QWidget *parent = nullptr):QLabel(parent) {}
     QString _text;
     bool    _displayFileName = true;
-    
+
   protected:
     virtual void paintEvent(QPaintEvent *) override {
         QPainter p(this);
@@ -35,7 +35,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
   public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(QStringList args, QWidget *parent = 0);
     ~MainWindow();
     MyLabel *_label;
     void setFullScreen(void);
@@ -49,7 +49,7 @@ class MainWindow : public QMainWindow
     bool _sleepMode = false;
     QList<QString> _names;
     QTimer *_imagetimer;
-    
+
   protected:
     virtual void keyPressEvent(QKeyEvent *event)
     {
