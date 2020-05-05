@@ -27,10 +27,10 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     int       _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
     bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
 
-	// override settings with command line options
-	if (args.size() > 1) directory = args.at(1);
-	if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
-	if (args.size() > 3) displayFileName = (args.at(3).toInt() != 0);
+    // override settings with command line options
+    if (args.size() > 1) directory = args.at(1);
+    if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
+    if (args.size() > 3) displayFileName = (args.at(3).toInt() != 0);
 
     {
         QFileInfo f(directory);
@@ -48,14 +48,14 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 // fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-	QScreen* screen = QGuiApplication::primaryScreen();
-	if (screen) {
-		QRect screenGeometry = screen->geometry();
-		resize(screenGeometry.width(), screenGeometry.height());
-	}
+    QScreen* screen = QGuiApplication::primaryScreen();
+    if (screen) {
+        QRect screenGeometry = screen->geometry();
+        resize(screenGeometry.width(), screenGeometry.height());
+    }
 #else
     auto screen = QApplication::desktop()->screenGeometry();
-	resize(screen.width(), screen.height());
+    resize(screen.width(), screen.height());
 #endif
 
 // create a label to show the picture
@@ -148,15 +148,15 @@ void MainWindow::loadImage( const QString &fileName)
      _label->setPixmap(QPixmap::fromImage(image));
      float h = _label->pixmap()->height();
      float w = _label->pixmap()->width();
-	 float scrWidth = 0.0f;
-	 float scrHeight = 0.0f;
+     float scrWidth = 0.0f;
+     float scrHeight = 0.0f;
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-	 QScreen* screen = QGuiApplication::primaryScreen();
-	 if (screen) {
-		 QRect screenGeometry = screen->geometry();
-		 scrWidth = (float)screenGeometry.width();
-		 scrHeight = (float)screenGeometry.height();
-	 }
+     QScreen* screen = QGuiApplication::primaryScreen();
+     if (screen) {
+         QRect screenGeometry = screen->geometry();
+         scrWidth = (float)screenGeometry.width();
+         scrHeight = (float)screenGeometry.height();
+     }
 #else
      auto screen = QApplication::desktop()->screenGeometry();
      scrWidth = (float)screen.height();
@@ -179,13 +179,13 @@ void MainWindow::setFullScreen(void)
 {
     setWindowFlags(Qt::FramelessWindowHint);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-	QScreen* screen = QGuiApplication::primaryScreen();
-	if (screen) {
-		QRect screenGeometry = screen->geometry();
-		auto height = screenGeometry.height();
-		move(0,0);
-		resize(screenGeometry.width(), height);
-	}
+    QScreen* screen = QGuiApplication::primaryScreen();
+    if (screen) {
+        QRect screenGeometry = screen->geometry();
+        auto height = screenGeometry.height();
+        move(0,0);
+        resize(screenGeometry.width(), height);
+    }
 #else
     auto screen = QApplication::desktop()->screenGeometry();
     auto height = screen.height();
