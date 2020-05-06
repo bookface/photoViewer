@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
+#include <QRandomGenerator>
 #endif
 
 #include <cstdlib>
@@ -17,6 +18,10 @@
 #include "sleepyTime.h"
 
 // #define TEST_SINGLE_IMAGE
+
+// simple random number function used by std::random_shuffle
+static int myrandom(int i) { return std::rand() % i; }
+
 
 MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
@@ -43,7 +48,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     }
 
 // init random number generator
-    srand (time(NULL));
+    std::srand( unsigned( std::time(0) ) );
 
 // fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
@@ -83,6 +88,9 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         exit(0);
     }
 
+// randomize list
+    std::random_shuffle(_names.begin(), _names.end(), myrandom);
+
     setFullScreen();                    // remove window decorations
     showImage();                        // load initial image
 
@@ -105,7 +113,7 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
         QString name = it.next();
         QFileInfo info(name);
         if (!info.isDir()) {
-        // qDebug() << it.next();
+            //qDebug() << it.next();
             _names.push_back(name);
         }
     }
@@ -115,9 +123,16 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 void MainWindow::showImage(void)
 {
     _lastN = _currentN;
-    int n = rand() % _names.size();
-    loadImage(_names[n]);
-    _currentN = n;
+    //int n = rand() % _names.size();
+    //int n = QRandomGenerator::global()->bounded(_names.size()-1);//generator.bounded(0,_names.size());
+    loadImage(_names[_currentN]);
+    _currentN++;
+    if (_currentN >= _names.size()) {
+// end of list reached, re-sort list with new random call
+        std::srand( unsigned( std::time(0) ) );
+        std::random_shuffle(_names.begin(), _names.end(), myrandom);
+        _currentN = 0;
+    }
 // sleep for half the display time
     if (_sleepMode) {
         Sleep(_secondsToShowImage * 1000 / 2);
@@ -139,7 +154,11 @@ void MainWindow::loadImage( const QString &fileName)
         QStringList list = fileName.split('/');
         int sz = list.size();
         if (sz > 2) {
-            _label->_text = list[sz-2] + "/" + list[sz-1];
+            if (_label->_displayDirectory) {
+                _label->_text = list[sz-2] + "/" + list[sz-1];
+            } else {
+                _label->_text = list[sz-1];
+            }
         } else {
             _label->_text = fileName;
 
