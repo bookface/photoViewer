@@ -6,6 +6,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+// hide the mouse cursor
+    QApplication::setOverrideCursor(Qt::BlankCursor);
 
     QCommandLineParser parser;
     parser.addHelpOption();
