@@ -8,20 +8,16 @@
 #include <QMessageBox>
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
-#include <QRandomGenerator>
 #endif
 
 #include <cstdlib>
 #include <iostream>
+#include <random>
 #include <time.h>
 
 #include "sleepyTime.h"
 
 // #define TEST_SINGLE_IMAGE
-
-// simple random number function used by std::random_shuffle
-static int myrandom(int i) { return std::rand() % i; }
-
 
 MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
@@ -46,9 +42,6 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
             exit(0);
         }
     }
-
-// init random number generator
-    std::srand( unsigned( std::time(0) ) );
 
 // fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
@@ -89,7 +82,9 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     }
 
 // randomize list
-    std::random_shuffle(_names.begin(), _names.end(), myrandom);
+    std::random_device rng;
+    std::mt19937 urng( rng() );
+    std::shuffle(_names.begin(), _names.end(), urng);
 
     setFullScreen();                    // remove window decorations
     showImage();                        // load initial image
@@ -123,14 +118,13 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 void MainWindow::showImage(void)
 {
     _lastN = _currentN;
-    //int n = rand() % _names.size();
-    //int n = QRandomGenerator::global()->bounded(_names.size()-1);//generator.bounded(0,_names.size());
     loadImage(_names[_currentN]);
     _currentN++;
     if (_currentN >= _names.size()) {
 // end of list reached, re-sort list with new random call
-        std::srand( unsigned( std::time(0) ) );
-        std::random_shuffle(_names.begin(), _names.end(), myrandom);
+        std::random_device rng;
+        std::mt19937 urng( rng() );
+        std::shuffle(_names.begin(), _names.end(), urng);
         _currentN = 0;
     }
 // sleep for half the display time
