@@ -16,6 +16,7 @@ class MyLabel : public QLabel {
     MyLabel(QWidget *parent = nullptr):QLabel(parent) {}
     QString _text;
     bool    _displayFileName = true;
+    bool    _displayDirectory = true;
 
   protected:
     virtual void paintEvent(QPaintEvent *) override {
