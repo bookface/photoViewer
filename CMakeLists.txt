@@ -45,6 +45,7 @@ set(sources
     ./main.cpp
     ./mainWindow.cpp
     ./mainWindow.h
+    ./processCommandLine.cpp
     )
 
 #--------------------------------------------------------------------------

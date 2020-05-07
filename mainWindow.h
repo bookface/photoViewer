@@ -33,7 +33,7 @@ class MyLabel : public QLabel {
 
 class MainWindow : public QMainWindow
 {
-  Q_OBJECT
+    Q_OBJECT
 
   public:
     MainWindow(QStringList args, QWidget *parent = 0);
@@ -46,11 +46,21 @@ class MainWindow : public QMainWindow
     int _numFiles = 0;
     int _lastN = 0;
     int _currentN = 0;
-    int _secondsToShowImage = 30;
-    bool _sleepMode = false;
     QList<QString> _names;
     QTimer *_imagetimer;
 
+    QVariant _directory = "./photos";
+    QVariant _secondsToShowImage = 30;
+#ifdef __arm__                          // rasp pi default
+    QVariant _sleepMode = true;
+#else
+    QVariant _sleepMode = false;
+#endif
+    QVariant _displayFileName = true;
+    QVariant _hideCursor = true;
+    
+    void processCommandLine(void);
+    
   protected:
     virtual void keyPressEvent(QKeyEvent *event)
     {

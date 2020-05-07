@@ -23,21 +23,29 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
 {
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
-    QString   directory = settings.value("Directory","./photos").value<QString>();
-    bool      _sleepMode = settings.value("SleepMode",false).value<bool>();
-    int       _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
-    bool      displayFileName = settings.value("DisplayFileName",true).value<bool>();
+    _directory = settings.value("Directory","./photos").value<QString>();
+    _sleepMode = settings.value("SleepMode",false).value<bool>();
+    _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
+    _displayFileName = settings.value("DisplayFileName",true).value<bool>();
 
-    // override settings with command line options
+// override settings with command line options
+    processCommandLine();
+
+// hide the mouse cursor
+    if (_hideCursor.toBool())
+        QApplication::setOverrideCursor(Qt::BlankCursor);
+    
+#if 0
     if (args.size() > 1) directory = args.at(1);
     if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
     if (args.size() > 3) displayFileName = (args.at(3).toInt() != 0);
-
+#endif
+    
     {
-        QFileInfo f(directory);
+        QFileInfo f(_directory.toString());
         if (!f.exists()) {
             QMessageBox box;
-            box.setText(QString("Photo Directory %1 Not Found").arg(directory));
+            box.setText(QString("Photo Directory %1 Not Found").arg(_directory.toString()));
             box.exec();
             exit(0);
         }
@@ -58,7 +66,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 // create a label to show the picture
     _label = new MyLabel(this);
-    _label->_displayFileName = displayFileName;
+    _label->_displayFileName = _displayFileName.toBool();
     _label->setSizePolicy(QSizePolicy::Ignored,
                           QSizePolicy::Ignored);
     _label->setScaledContents(true);
@@ -74,7 +82,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 #else  // load slideshow
 
-    if (!loadImagesFromDirectoryName(directory)) {
+    if (!loadImagesFromDirectoryName(_directory.toString())) {
         QMessageBox box;
         box.setText("No Images found");
         box.exec();
@@ -95,7 +103,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
             [=]() {
                 showImage();
             });
-    _imagetimer->start(_secondsToShowImage * 1000);
+    _imagetimer->start(_secondsToShowImage.toInt() * 1000);
 
 #endif
 
@@ -127,9 +135,10 @@ void MainWindow::showImage(void)
         std::shuffle(_names.begin(), _names.end(), urng);
         _currentN = 0;
     }
+
 // sleep for half the display time
-    if (_sleepMode) {
-        Sleep(_secondsToShowImage * 1000 / 2);
+    if (_sleepMode.toBool()) {
+        Sleep(_secondsToShowImage.toInt() * 1000 / 2);
     }
 }
 
