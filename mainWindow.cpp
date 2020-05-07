@@ -27,7 +27,8 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _sleepMode = settings.value("SleepMode",false).value<bool>();
     _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
     _displayFileName = settings.value("DisplayFileName",true).value<bool>();
-
+    _hideCursor = settings.value("HideCursor",true).value<bool>();
+    
 // override settings with command line options
     processCommandLine();
 
