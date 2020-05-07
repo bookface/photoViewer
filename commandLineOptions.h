@@ -119,6 +119,7 @@ class CommandLineOptions {
                     } else {
                         variantPointer = s._result;
                     }
+                    break;
                 }
 
             //
@@ -128,6 +129,7 @@ class CommandLineOptions {
                                    ,s._name
                                    ,s._result)) {
                     variantPointer = s._result;
+                    break;
                 }
             }
         }
