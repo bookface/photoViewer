@@ -10,6 +10,7 @@
 #include <QList>
 #include <QTimer>
 #include <QPainter>
+#include <iostream>
 
 class MyLabel : public QLabel {
   public:
@@ -43,6 +44,7 @@ class MainWindow : public QMainWindow
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
     void loadImage( const QString &fileName);
+
     int _numFiles = 0;
     int _lastN = 0;
     int _currentN = 0;
@@ -60,6 +62,8 @@ class MainWindow : public QMainWindow
     QVariant _hideCursor = true;
     
     void processCommandLine(void);
+    void nextImage(void);
+    void prevImage(void);
     
   protected:
     virtual void keyPressEvent(QKeyEvent *event)
@@ -67,6 +71,16 @@ class MainWindow : public QMainWindow
         if (event->key() == Qt::Key_Escape) {
             exit(0);
         }
+    }
+
+    virtual void wheelEvent(QWheelEvent *event) {
+        QPoint numDegrees = event->angleDelta() / 8;
+        if (numDegrees.y() < 0) {
+            nextImage();
+        } else if (numDegrees.y() > 0) {
+            prevImage();
+        }
+
     }
 };
 

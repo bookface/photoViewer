@@ -11,7 +11,6 @@
 #endif
 
 #include <cstdlib>
-#include <iostream>
 #include <random>
 #include <time.h>
 
@@ -110,6 +109,26 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 }
 
+void MainWindow::nextImage(void)
+{
+    if (_lastN < _names.size()) {
+        ++_lastN;
+        _currentN = _lastN;
+        showImage();
+        _imagetimer->start();
+    }
+}
+
+void MainWindow::prevImage(void)
+{
+    int newone = _lastN - 1;
+    if (newone < 0) newone = 0;
+    _currentN = newone;
+    showImage();
+//    loadImage(_currentN);
+    _imagetimer->start();
+}
+
 bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 {
     QDirIterator it(dirName, QDirIterator::Subdirectories);
@@ -117,7 +136,6 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
         QString name = it.next();
         QFileInfo info(name);
         if (!info.isDir()) {
-            //qDebug() << it.next();
             _names.push_back(name);
         }
     }
@@ -129,6 +147,7 @@ void MainWindow::showImage(void)
     _lastN = _currentN;
     loadImage(_names[_currentN]);
     _currentN++;
+
     if (_currentN >= _names.size()) {
 // end of list reached, re-sort list with new random call
         std::random_device rng;
