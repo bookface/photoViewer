@@ -14,11 +14,16 @@ void MainWindow::processCommandLine(void)
     options.add("s",&_secondsToShowImage);
     options.add("sleep",&_sleepMode);
     options.parse();
-#if 1
+
+#if 0
+    cout << "--------------------------------------------------\n";
     cout << "Directory " << P(_directory.toString()) << endl;
     cout << "Display File Name " << _displayFileName.toBool() << endl;
     cout << "Seconds " << _secondsToShowImage.toInt() << endl;
     cout << "Sleep " << _sleepMode.toBool() << endl;
+    cout << "Hide Cursor " << _hideCursor.toBool() << endl;
+    cout << "--------------------------------------------------" << endl;
+
 #endif
     
 }

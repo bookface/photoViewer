@@ -8,7 +8,7 @@
 #include <QCommandLineParser>
 #include <QList>
 #include <QVariant>
-
+#include <QDebug>
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 //     options.add(<name of option, no dashes>, <QVariant variable>)
 //     options.parse()
 //
-// 1. Dashes are thrown out, to you can use either -d or --d
+// 1. Dashes are thrown out, so you can use either -d or --d.
 // 2. You can also use an equals assignment, e.g -d=100
 // 3. A param with no argument should only be used with boolean
 //    variants. A boolean variant passed with a -<param> will be
@@ -85,30 +85,34 @@ class CommandLineOptions {
     void processCommandLine(void) {
         QStringList args = QCoreApplication::arguments();
         QVariant *variantPointer = nullptr;
+    //
+    // first arg will be the program name
+    //
         foreach(QString arg, args) {
         //
         // waiting for an argument to a "-<value>". variantPointer
         // should be pointing to the variable found below
         //
             if (variantPointer != nullptr) {
-                *variantPointer = arg;  // assign the argument
+                *variantPointer = arg;
                 variantPointer = nullptr;
             }        
 
-            QString tmp = arg;
         //
         // remove all "-"'s and leave the name only
         //
+            QString tmp = arg;
             while (tmp.startsWith("-")) {
                 tmp.remove(0,1);            // remove the '-'
             }
         //
-        // process all options
+        // See if each option matches up with the command
+        // line argument
         //
             for(int i=0; i<_options.size(); ++i) {
                 Options s = _options.at(i);
             //
-            // process all "-<letter>" options
+            // Found a match
             // If the variant variable is a boolean, invert it,
             // else just assign the value.
             //
@@ -128,7 +132,6 @@ class CommandLineOptions {
                 if (checkEqualsArg(tmp
                                    ,s._name
                                    ,s._result)) {
-                    variantPointer = s._result;
                     break;
                 }
             }
