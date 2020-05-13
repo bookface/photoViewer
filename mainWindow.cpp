@@ -53,8 +53,18 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         }
     }
 
-// fill the whole screen with the main window
+// Set the size of the screen
     setStyleSheet("QMainWindow {background: 'black';}");
+    if (!_fullscreen.toBool()) {
+    //
+    // hmmm... if you don't do this, Qt creates a very
+    // small initial window
+    //
+        QScreen* screen = QGuiApplication::primaryScreen();
+        QRect screenGeometry = screen->geometry();
+        resize(screenGeometry.width() * 0.75
+               ,screenGeometry.height() * 0.75);
+    }
     setScreenSize();
 
 // create a label to show the picture
@@ -166,9 +176,8 @@ void MainWindow::loadImage( const QString &fileName)
         _label->_text = QString("Cant load %1").arg(fileName);
         return;
     }
-    bool showFileName(true);
 
-    if (showFileName){
+    if (_label->_displayFileName) {
         QFileInfo info(fileName);
     // just display the last directory + the file name
         QStringList list = fileName.split('/');
@@ -213,19 +222,17 @@ void MainWindow::scaleImage(void)
 
 void MainWindow::setScreenSize(void)
 {
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        QRect screenGeometry = screen->geometry();
-        int space = _fullscreen.toBool() ? 0 : 100;
-        resize(screenGeometry.width()-space
-               ,screenGeometry.height()-space);
-    }
     if (_fullscreen.toBool()) {
+        QScreen* screen = QGuiApplication::primaryScreen();
+        if (screen) {
+            QRect screenGeometry = screen->geometry();
+            resize(screenGeometry.width()
+                   ,screenGeometry.height());
+        }
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
         move(0,0);
     } else {
         setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
-        move(50,10);
     }
     show();
 }

@@ -75,6 +75,8 @@ class MainWindow : public QMainWindow
     
   protected:
 
+    QByteArray _geometry;
+    
     void setScreenSize(void);
     void scaleImage(void);
     
@@ -85,6 +87,11 @@ class MainWindow : public QMainWindow
         }
         if (event->key() == Qt::Key_F) {
             _fullscreen = !_fullscreen.toBool();
+            if (!_fullscreen.toBool()) {
+                restoreGeometry(_geometry);
+            } else {
+                _geometry = saveGeometry();
+            }
             setScreenSize();
         }
     }
