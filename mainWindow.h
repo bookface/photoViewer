@@ -10,6 +10,7 @@
 #include <QList>
 #include <QTimer>
 #include <QPainter>
+#include <QDebug>
 #include <iostream>
 
 class MyLabel : public QLabel {
@@ -39,7 +40,7 @@ class MainWindow : public QMainWindow
   public:
     MainWindow(QStringList args, QWidget *parent = 0);
     ~MainWindow();
-    MyLabel *_label;
+    MyLabel *_label = nullptr;
 
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
@@ -75,7 +76,8 @@ class MainWindow : public QMainWindow
   protected:
 
     void setScreenSize(void);
-
+    void scaleImage(void);
+    
     virtual void keyPressEvent(QKeyEvent *event)
     {
         if (event->key() == Qt::Key_Escape) {
@@ -85,6 +87,14 @@ class MainWindow : public QMainWindow
             _fullscreen = !_fullscreen.toBool();
             setScreenSize();
         }
+    }
+
+    virtual bool event(QEvent *event)
+    {
+        if (event->type() == QEvent::Resize) {
+            scaleImage();
+        }
+        return QMainWindow::event(event);
     }
 
     virtual void wheelEvent(QWheelEvent *event) {
