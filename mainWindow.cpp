@@ -27,6 +27,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
     _displayFileName = settings.value("DisplayFileName",true).value<bool>();
     _hideCursor = settings.value("HideCursor",true).value<bool>();
+    _randomMode = settings.value("Random",true).value<bool>();
     
 // override settings with command line options
     processCommandLine();
@@ -90,9 +91,11 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     }
 
 // randomize list
-    std::random_device rng;
-    std::mt19937 urng( rng() );
-    std::shuffle(_names.begin(), _names.end(), urng);
+    if (_randomMode.toBool()) {
+        std::random_device rng;
+        std::mt19937 urng( rng() );
+        std::shuffle(_names.begin(), _names.end(), urng);
+    }
 
     setFullScreen();                    // remove window decorations
     showImage();                        // load initial image
@@ -111,18 +114,19 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 void MainWindow::nextImage(void)
 {
-    if (_lastN < _names.size()) {
-        ++_lastN;
-        _currentN = _lastN;
-        showImage();
-        _imagetimer->start();
+    ++_lastN;
+    if (_lastN == _names.size()) {
+        _lastN = 0;
     }
+    _currentN = _lastN;
+    showImage();
+    _imagetimer->start();
 }
 
 void MainWindow::prevImage(void)
 {
     int newone = _lastN - 1;
-    if (newone < 0) newone = 0;
+    if (newone < 0) newone = _names.size()-1;
     _currentN = newone;
     showImage();
 //    loadImage(_currentN);
@@ -149,10 +153,12 @@ void MainWindow::showImage(void)
     _currentN++;
 
     if (_currentN >= _names.size()) {
-// end of list reached, re-sort list with new random call
-        std::random_device rng;
-        std::mt19937 urng( rng() );
-        std::shuffle(_names.begin(), _names.end(), urng);
+    // end of list reached, re-sort list with new random call
+        if (_randomMode.toBool()) {
+            std::random_device rng;
+            std::mt19937 urng( rng() );
+            std::shuffle(_names.begin(), _names.end(), urng);
+        }
         _currentN = 0;
     }
 

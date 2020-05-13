@@ -11,6 +11,7 @@ void MainWindow::processCommandLine(void)
     options.add("c",&_hideCursor);
     options.add("d",&_directory);
     options.add("f",&_displayFileName);
+    options.add("r",&_randomMode);
     options.add("s",&_secondsToShowImage);
     options.add("sleep",&_sleepMode);
     options.parse();

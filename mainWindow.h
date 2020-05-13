@@ -51,6 +51,10 @@ class MainWindow : public QMainWindow
     QList<QString> _names;
     QTimer *_imagetimer;
 
+//
+// Program options - QVariant's makes it simplier to load
+// from the command line or the configuration file
+//
     QVariant _directory = "./photos";
     QVariant _secondsToShowImage = 30;
 #ifdef __arm__                          // rasp pi default
@@ -60,6 +64,7 @@ class MainWindow : public QMainWindow
 #endif
     QVariant _displayFileName = true;
     QVariant _hideCursor = true;
+    QVariant _randomMode = true;
     
     void processCommandLine(void);
     void nextImage(void);
