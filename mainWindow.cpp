@@ -23,11 +23,12 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 {
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
     _directory = settings.value("Directory","./photos").value<QString>();
-    _sleepMode = settings.value("SleepMode",false).value<bool>();
-    _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
-    _displayFileName = settings.value("DisplayFileName",true).value<bool>();
-    _hideCursor = settings.value("HideCursor",true).value<bool>();
-    _randomMode = settings.value("Random",true).value<bool>();
+    _sleepMode = settings.value("SleepMode",_sleepMode).value<bool>();
+    _secondsToShowImage = settings.value("DisplayTime",_secondsToShowImage).value<int>();
+    _displayFileName = settings.value("DisplayFileName",_displayFileName).value<bool>();
+    _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
+    _randomMode = settings.value("Random",_randomMode).value<bool>();
+    _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
     
 // override settings with command line options
     processCommandLine();
@@ -54,16 +55,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 // fill the whole screen with the main window
     setStyleSheet("QMainWindow {background: 'black';}");
-#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        QRect screenGeometry = screen->geometry();
-        resize(screenGeometry.width(), screenGeometry.height());
-    }
-#else
-    auto screen = QApplication::desktop()->screenGeometry();
-    resize(screen.width(), screen.height());
-#endif
+    setScreenSize();
 
 // create a label to show the picture
     _label = new MyLabel(this);
@@ -97,7 +89,6 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         std::shuffle(_names.begin(), _names.end(), urng);
     }
 
-    setFullScreen();                    // remove window decorations
     showImage();                        // load initial image
 
 // create timer to display images
@@ -223,26 +214,24 @@ void MainWindow::loadImage( const QString &fileName)
      _label->move(spaceLeftW,spaceLeftH);
 }
 
-void MainWindow::setFullScreen(void)
+void MainWindow::setScreenSize(void)
 {
-    setWindowFlags(Qt::FramelessWindowHint);
-#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
     QScreen* screen = QGuiApplication::primaryScreen();
     if (screen) {
         QRect screenGeometry = screen->geometry();
-        auto height = screenGeometry.height();
-        move(0,0);
-        resize(screenGeometry.width(), height);
+        int space = _fullscreen.toBool() ? 0 : 100;
+        resize(screenGeometry.width()-space
+               ,screenGeometry.height()-space);
     }
-#else
-    auto screen = QApplication::desktop()->screenGeometry();
-    auto height = screen.height();
-    move(0,0);
-    resize(screen.width(), height);
-#endif
+    if (_fullscreen.toBool()) {
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        move(0,0);
+    } else {
+        setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+        move(50,10);
+    }
     show();
 }
-
 
 MainWindow::~MainWindow()
 {

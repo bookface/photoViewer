@@ -40,7 +40,7 @@ class MainWindow : public QMainWindow
     MainWindow(QStringList args, QWidget *parent = 0);
     ~MainWindow();
     MyLabel *_label;
-    void setFullScreen(void);
+
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
     void loadImage( const QString &fileName);
@@ -50,6 +50,11 @@ class MainWindow : public QMainWindow
     int _currentN = 0;
     QList<QString> _names;
     QTimer *_imagetimer;
+
+    void processCommandLine(void);
+    void nextImage(void);
+    void prevImage(void);
+    
 
 //
 // Program options - QVariant's makes it simplier to load
@@ -65,16 +70,20 @@ class MainWindow : public QMainWindow
     QVariant _displayFileName = true;
     QVariant _hideCursor = true;
     QVariant _randomMode = true;
-    
-    void processCommandLine(void);
-    void nextImage(void);
-    void prevImage(void);
+    QVariant _fullscreen = true;
     
   protected:
+
+    void setScreenSize(void);
+
     virtual void keyPressEvent(QKeyEvent *event)
     {
         if (event->key() == Qt::Key_Escape) {
             exit(0);
+        }
+        if (event->key() == Qt::Key_F) {
+            _fullscreen = !_fullscreen.toBool();
+            setScreenSize();
         }
     }
 
