@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QSettings>
 #include <QMessageBox>
+#include <QImageReader>
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
 #endif
@@ -130,7 +132,6 @@ void MainWindow::prevImage(void)
     if (newone < 0) newone = _names.size()-1;
     _currentN = newone;
     showImage();
-//    loadImage(_currentN);
     _imagetimer->start();
 }
 
@@ -141,7 +142,10 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
         QString name = it.next();
         QFileInfo info(name);
         if (!info.isDir()) {
-            _names.push_back(name);
+            QImageReader qImageReader(name);
+            if (qImageReader.canRead()) {
+                _names.push_back(name);
+            }
         }
     }
     return _names.size() > 0 ? true : false;
