@@ -154,18 +154,17 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 void MainWindow::showImage(void)
 {
     _lastN = _currentN;
-    loadImage(_names[_currentN]);
     _currentN++;
 
     if (_currentN >= _names.size()) {
-    // end of list reached, re-sort list with new random call
-        if (_randomMode.toBool()) {
-            std::random_device rng;
-            std::mt19937 urng( rng() );
-            std::shuffle(_names.begin(), _names.end(), urng);
-        }
-        _currentN = 0;
+// end of list reached, re-sort list with new random call
+        std::random_device rng;
+        std::mt19937 urng( rng() );
+        std::shuffle(_names.begin(), _names.end(), urng);
+        _currentN = _lastN = 0;
     }
+
+	loadImage(_names[_currentN]);
 
 // sleep for half the display time
     if (_sleepMode.toBool()) {
