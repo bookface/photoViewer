@@ -10,6 +10,7 @@
 #include <QList>
 #include <QTimer>
 #include <QPainter>
+#include <QDebug>
 #include <iostream>
 
 class MyLabel : public QLabel {
@@ -39,8 +40,8 @@ class MainWindow : public QMainWindow
   public:
     MainWindow(QStringList args, QWidget *parent = 0);
     ~MainWindow();
-    MyLabel *_label;
-    void setFullScreen(void);
+    MyLabel *_label = nullptr;
+
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
     void loadImage( const QString &fileName);
@@ -51,6 +52,15 @@ class MainWindow : public QMainWindow
     QList<QString> _names;
     QTimer *_imagetimer;
 
+    void processCommandLine(void);
+    void nextImage(void);
+    void prevImage(void);
+    
+
+//
+// Program options - QVariant's makes it simplier to load
+// from the command line or the configuration file
+//
     QVariant _directory = "./photos";
     QVariant _secondsToShowImage = 30;
 #ifdef __arm__                          // rasp pi default
@@ -60,17 +70,38 @@ class MainWindow : public QMainWindow
 #endif
     QVariant _displayFileName = true;
     QVariant _hideCursor = true;
-    
-    void processCommandLine(void);
-    void nextImage(void);
-    void prevImage(void);
+    QVariant _randomMode = true;
+    QVariant _fullscreen = true;
     
   protected:
+
+    QByteArray _geometry;
+    
+    void setScreenSize(void);
+    void scaleImage(void);
+    
     virtual void keyPressEvent(QKeyEvent *event)
     {
         if (event->key() == Qt::Key_Escape) {
             exit(0);
         }
+        if (event->key() == Qt::Key_F) {
+            _fullscreen = !_fullscreen.toBool();
+            if (!_fullscreen.toBool()) {
+                restoreGeometry(_geometry);
+            } else {
+                _geometry = saveGeometry();
+            }
+            setScreenSize();
+        }
+    }
+
+    virtual bool event(QEvent *event)
+    {
+        if (event->type() == QEvent::Resize) {
+            scaleImage();
+        }
+        return QMainWindow::event(event);
     }
 
     virtual void wheelEvent(QWheelEvent *event) {

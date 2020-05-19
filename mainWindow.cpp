@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QSettings>
 #include <QMessageBox>
+#include <QImageReader>
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
 #endif
@@ -23,10 +25,12 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 {
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
     _directory = settings.value("Directory","./photos").value<QString>();
-    _sleepMode = settings.value("SleepMode",false).value<bool>();
-    _secondsToShowImage = settings.value("DisplayTime",30).value<int>();
-    _displayFileName = settings.value("DisplayFileName",true).value<bool>();
-    _hideCursor = settings.value("HideCursor",true).value<bool>();
+    _sleepMode = settings.value("SleepMode",_sleepMode).value<bool>();
+    _secondsToShowImage = settings.value("DisplayTime",_secondsToShowImage).value<int>();
+    _displayFileName = settings.value("DisplayFileName",_displayFileName).value<bool>();
+    _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
+    _randomMode = settings.value("Random",_randomMode).value<bool>();
+    _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
     
 // override settings with command line options
     processCommandLine();
@@ -51,18 +55,19 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         }
     }
 
-// fill the whole screen with the main window
+// Set the size of the screen
     setStyleSheet("QMainWindow {background: 'black';}");
-#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (screen) {
+    if (!_fullscreen.toBool()) {
+    //
+    // hmmm... if you don't do this, Qt creates a very
+    // small initial window
+    //
+        QScreen* screen = QGuiApplication::primaryScreen();
         QRect screenGeometry = screen->geometry();
-        resize(screenGeometry.width(), screenGeometry.height());
+        resize(screenGeometry.width() * 0.75
+               ,screenGeometry.height() * 0.75);
     }
-#else
-    auto screen = QApplication::desktop()->screenGeometry();
-    resize(screen.width(), screen.height());
-#endif
+    setScreenSize();
 
 // create a label to show the picture
     _label = new MyLabel(this);
@@ -90,11 +95,12 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     }
 
 // randomize list
-    std::random_device rng;
-    std::mt19937 urng( rng() );
-    std::shuffle(_names.begin(), _names.end(), urng);
+    if (_randomMode.toBool()) {
+        std::random_device rng;
+        std::mt19937 urng( rng() );
+        std::shuffle(_names.begin(), _names.end(), urng);
+    }
 
-    setFullScreen();                    // remove window decorations
     showImage();                        // load initial image
 
 // create timer to display images
@@ -111,21 +117,21 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 void MainWindow::nextImage(void)
 {
-    if (_lastN < _names.size()) {
-        ++_lastN;
-        _currentN = _lastN;
-        showImage();
-        _imagetimer->start();
+    ++_lastN;
+    if (_lastN == _names.size()) {
+        _lastN = 0;
     }
+    _currentN = _lastN;
+    showImage();
+    _imagetimer->start();
 }
 
 void MainWindow::prevImage(void)
 {
     int newone = _lastN - 1;
-    if (newone < 0) newone = 0;
+    if (newone < 0) newone = _names.size()-1;
     _currentN = newone;
     showImage();
-//    loadImage(_currentN);
     _imagetimer->start();
 }
 
@@ -136,7 +142,10 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
         QString name = it.next();
         QFileInfo info(name);
         if (!info.isDir()) {
-            _names.push_back(name);
+            QImageReader qImageReader(name);
+            if (qImageReader.canRead()) {
+                _names.push_back(name);
+            }
         }
     }
     return _names.size() > 0 ? true : false;
@@ -170,9 +179,8 @@ void MainWindow::loadImage( const QString &fileName)
         _label->_text = QString("Cant load %1").arg(fileName);
         return;
     }
-    bool showFileName(true);
 
-    if (showFileName){
+    if (_label->_displayFileName) {
         QFileInfo info(fileName);
     // just display the last directory + the file name
         QStringList list = fileName.split('/');
@@ -189,55 +197,48 @@ void MainWindow::loadImage( const QString &fileName)
         }
     }
      _label->setPixmap(QPixmap::fromImage(image));
-     float h = _label->pixmap()->height();
-     float w = _label->pixmap()->width();
-     float scrWidth = 0.0f;
-     float scrHeight = 0.0f;
-#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-     QScreen* screen = QGuiApplication::primaryScreen();
-     if (screen) {
-         QRect screenGeometry = screen->geometry();
-         scrWidth = (float)screenGeometry.width();
-         scrHeight = (float)screenGeometry.height();
-     }
-#else
-     auto screen = QApplication::desktop()->screenGeometry();
-     scrWidth = (float)screen.height();
-     scrHeight = (float)screen.width();
-#endif
-     if (h < 0.01f || w < 0.01f || scrHeight < 0.01f || scrWidth < 0.01f) return;  // prevent divide by zero
-     float scaleH = scrHeight / h;
-     float scaleW = scrWidth / w;
-     float scale = scaleH;
-     if (scaleW < scaleH) {
-         scale = scaleW;
-     }
-     _label->resize(w * scale,h * scale);
-     float spaceLeftW = (scrWidth - w * scale) / 2.f;
-     float spaceLeftH = (scrHeight - h * scale) / 2.f;
-     _label->move(spaceLeftW,spaceLeftH);
+     scaleImage();
+     
 }
 
-void MainWindow::setFullScreen(void)
+void MainWindow::scaleImage(void)
 {
-    setWindowFlags(Qt::FramelessWindowHint);
-#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        QRect screenGeometry = screen->geometry();
-        auto height = screenGeometry.height();
-        move(0,0);
-        resize(screenGeometry.width(), height);
+    if (_label != nullptr) {
+        float h = _label->pixmap()->height();
+        float w = _label->pixmap()->width();
+        float scrWidth = width();
+        float scrHeight = height();
+        
+        if (h < 0.01f || w < 0.01f || scrHeight < 0.01f || scrWidth < 0.01f) return;  // prevent divide by zero
+        float scaleH = scrHeight / h;
+        float scaleW = scrWidth / w;
+        float scale = scaleH;
+        if (scaleW < scaleH) {
+            scale = scaleW;
+        }
+        _label->resize(w * scale,h * scale);
+        float spaceLeftW = (scrWidth - w * scale) / 2.f;
+        float spaceLeftH = (scrHeight - h * scale) / 2.f;
+        _label->move(spaceLeftW,spaceLeftH);
     }
-#else
-    auto screen = QApplication::desktop()->screenGeometry();
-    auto height = screen.height();
-    move(0,0);
-    resize(screen.width(), height);
-#endif
+}
+
+void MainWindow::setScreenSize(void)
+{
+    if (_fullscreen.toBool()) {
+        QScreen* screen = QGuiApplication::primaryScreen();
+        if (screen) {
+            QRect screenGeometry = screen->geometry();
+            resize(screenGeometry.width()
+                   ,screenGeometry.height());
+        }
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        move(0,0);
+    } else {
+        setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+    }
     show();
 }
-
 
 MainWindow::~MainWindow()
 {
