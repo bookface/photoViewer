@@ -14,6 +14,7 @@ set(exec photoViewer)
 #--------------------------------------------------------------------------
 include_directories(
     ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/exif
     ${CMAKE_BINARY_DIR}
     )
 
@@ -46,6 +47,8 @@ set(sources
     ./mainWindow.cpp
     ./mainWindow.h
     ./processCommandLine.cpp
+    ./getOrientation.cpp
+    ./exif/exif.cpp
     )
 
 #--------------------------------------------------------------------------

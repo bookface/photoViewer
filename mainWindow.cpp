@@ -163,10 +163,9 @@ void MainWindow::showImage(void)
         std::shuffle(_names.begin(), _names.end(), urng);
         _currentN = _lastN = 0;
     }
+    
+    loadImage(_names[_currentN]);
 
-	loadImage(_names[_currentN]);
-
-// sleep for half the display time
     if (_sleepMode.toBool()) {
         Sleep(_secondsToShowImage.toInt() * 1000 / 2);
     }
@@ -196,8 +195,19 @@ void MainWindow::loadImage( const QString &fileName)
 
         }
     }
-     _label->setPixmap(QPixmap::fromImage(image));
-     scaleImage();
+    int orientation = getOrientation(fileName);
+    QMatrix mat;
+    switch(orientation) {
+      case 3:                           // 180 flip
+        mat.rotate(180);
+        break;
+      case 6:                           // 90 
+        mat.rotate(90);
+        break;
+    }
+
+    _label->setPixmap(QPixmap::fromImage(image).transformed(mat));
+    scaleImage();
      
 }
 

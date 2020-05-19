@@ -45,7 +45,8 @@ class MainWindow : public QMainWindow
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
     void loadImage( const QString &fileName);
-
+    int  getOrientation(const QString &fileName);
+    
     int _numFiles = 0;
     int _lastN = 0;
     int _currentN = 0;

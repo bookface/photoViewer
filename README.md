@@ -26,3 +26,6 @@ DisplayTime = <seconds>
 # Display the file name, default true.
 DisplayFileName = <boolean>
 
+---------------------------------------------------------------------------
+Orientation code copied from:
+https://www.eastfist.com/qt_tutorials/index.php/2017/02/07/how-to-read-exif-orientation-from-jpeg-in-qt-4-8-5/
