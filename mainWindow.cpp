@@ -145,7 +145,6 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 void MainWindow::showImage(void)
 {
     _lastN = _currentN;
-    loadImage(_names[_currentN]);
     _currentN++;
 
     if (_currentN >= _names.size()) {
@@ -153,8 +152,10 @@ void MainWindow::showImage(void)
         std::random_device rng;
         std::mt19937 urng( rng() );
         std::shuffle(_names.begin(), _names.end(), urng);
-        _currentN = 0;
+        _currentN = _lastN = 0;
     }
+
+	loadImage(_names[_currentN]);
 
 // sleep for half the display time
     if (_sleepMode.toBool()) {
