@@ -196,13 +196,17 @@ void MainWindow::loadImage( const QString &fileName)
         }
     }
     int orientation = getOrientation(fileName);
+//    qDebug() << "Orientation" << orientation;
     QMatrix mat;
     switch(orientation) {
       case 3:                           // 180 flip
         mat.rotate(180);
         break;
-      case 6:                           // 90 
+      case 6:                           // 90 rot
         mat.rotate(90);
+        break;
+      case 8:                           // 270 rot
+        mat.rotate(-90);
         break;
     }
 
