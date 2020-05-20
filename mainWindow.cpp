@@ -197,20 +197,20 @@ void MainWindow::loadImage( const QString &fileName)
     }
     int orientation = getOrientation(fileName);
 //    qDebug() << "Orientation" << orientation;
-    QMatrix mat;
+    QTransform rot;
     switch(orientation) {
       case 3:                           // 180 flip
-        mat.rotate(180);
+        rot.rotate(180);
         break;
       case 6:                           // 90 rot
-        mat.rotate(90);
+        rot.rotate(90);
         break;
       case 8:                           // 270 rot
-        mat.rotate(-90);
+        rot.rotate(-90);
         break;
     }
 
-    _label->setPixmap(QPixmap::fromImage(image).transformed(mat));
+    _label->setPixmap(QPixmap::fromImage(image).transformed(rot));
     scaleImage();
      
 }
