@@ -39,6 +39,9 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     if (_hideCursor.toBool())
         QApplication::setOverrideCursor(Qt::BlankCursor);
     
+// allow drag-drops
+    setAcceptDrops(true);
+    
 #if 0
     if (args.size() > 1) directory = args.at(1);
     if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
@@ -117,6 +120,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 void MainWindow::nextImage(void)
 {
+    if (_names.size() == 0 ) return;    // single image display
     ++_lastN;
     if (_lastN == _names.size()) {
         _lastN = 0;
@@ -128,6 +132,8 @@ void MainWindow::nextImage(void)
 
 void MainWindow::prevImage(void)
 {
+    if (_names.size() == 0 ) return;    // single image display
+    
     int newone = _lastN - 1;
     if (newone < 0) newone = _names.size()-1;
     _currentN = newone;

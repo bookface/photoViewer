@@ -11,6 +11,8 @@
 #include <QTimer>
 #include <QPainter>
 #include <QDebug>
+#include <QMimeData>
+#include <QDir>
 #include <iostream>
 
 class MyLabel : public QLabel {
@@ -112,8 +114,34 @@ class MainWindow : public QMainWindow
         } else if (numDegrees.y() > 0) {
             prevImage();
         }
-
     }
+    
+// be sure to call setAcceptDrops(true) in constructor
+    virtual void dragEnterEvent(QDragEnterEvent *event) override {
+        if (event->mimeData()->hasUrls()) {
+            event->acceptProposedAction();
+        }
+    }
+
+    virtual void dropEvent(QDropEvent *event) override {
+        auto urls = event->mimeData()->urls();
+        if (urls.size() == 0) return;
+        auto dirname  = urls.first().path();
+        auto fileName = urls.first().toLocalFile();
+        qDebug() << dirname << fileName;
+    // stars directorys with '/' for some reason
+        if (dirname[0]=='/') {
+            dirname.remove(0, 1); 
+        }
+        _names.clear();
+        QDir qdir(dirname);
+        if (qdir.exists()) {
+            loadImagesFromDirectoryName(dirname);
+            showImage();
+        } else if (QFile::exists(fileName))
+            loadImage(fileName);
+    }
+
 };
 
 
