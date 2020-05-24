@@ -81,7 +81,7 @@ class MainWindow : public QMainWindow
     QByteArray _geometry;
     
     void setScreenSize(void);
-    void scaleImage(void);
+    void resizeLabel(void);
     
     virtual void keyPressEvent(QKeyEvent *event)
     {
@@ -102,7 +102,7 @@ class MainWindow : public QMainWindow
     virtual bool event(QEvent *event)
     {
         if (event->type() == QEvent::Resize) {
-            scaleImage();
+            resizeLabel();
         }
         return QMainWindow::event(event);
     }

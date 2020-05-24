@@ -216,12 +216,26 @@ void MainWindow::loadImage( const QString &fileName)
         break;
     }
 
-    _label->setPixmap(QPixmap::fromImage(image).transformed(rot));
-    scaleImage();
+//
+// Perform the Qt smoothing algorithm and apply
+// the pixmap to the label.
+//
+// This really is only necessary for images that have not been pre-scaled
+// to the screen size
+//    
+    if (image.width() > width()) {
+        _label->setPixmap(QPixmap::fromImage(image)
+                          .transformed(rot).scaled(QSize(width(),height())
+                                                   ,Qt::KeepAspectRatio,
+                                                   Qt::SmoothTransformation));
+    } else {
+        _label->setPixmap(QPixmap::fromImage(image).transformed(rot));
+    }
+    resizeLabel();
      
 }
 
-void MainWindow::scaleImage(void)
+void MainWindow::resizeLabel(void)
 {
     if (_label != nullptr) {
         float h = _label->pixmap()->height();
