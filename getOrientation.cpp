@@ -4,17 +4,20 @@
 #include <QDebug>
 #include "exif.h"
 
-static char * orients[] = {
-                           "undefined",
-                           "normal",
-                           "hori flip",
-                           "180 rot",
-                           "vert flip",
-                           "transpose",
-                           "90 rot",
-                           "transverse",
-                           "270 rot",
+// only for qDebug() below
+#if 0
+static const char * orients[] = {
+                                 "undefined",
+                                 "normal",
+                                 "hori flip",
+                                 "180 rot",
+                                 "vert flip",
+                                 "transpose",
+                                 "90 rot",
+                                 "transverse",
+                                 "270 rot",
 };
+#endif
 
 int MainWindow::getOrientation(const QString &filename)
 {
