@@ -16,8 +16,17 @@
 #include <iostream>
 
 class MyLabel : public QLabel {
+
+    QFont _font;
+
   public:
-    MyLabel(QWidget *parent = nullptr):QLabel(parent) {}
+    MyLabel(QWidget *parent = nullptr):QLabel(parent) {
+        _font.setFamily("Times");
+        _font.setPointSize(30);
+        _font.setWeight(QFont::Bold);
+        _font.setStyleStrategy(QFont::PreferAntialias);
+        
+    }
     QString _text;
     bool    _displayFileName = true;
     bool    _displayDirectory = true;
@@ -28,8 +37,17 @@ class MyLabel : public QLabel {
         const QPixmap *pmap = this->pixmap();
         p.drawPixmap(rect(), *pmap);
         if (_displayFileName && _text.length()) {
+        // create outline text
+            p.setFont(_font);
+            QPen pen;
+            pen.setWidth(10);
+            pen.setColor(Qt::black);
+            p.setPen(pen);
+            QPainterPath path;
+            path.addText(0, 40, _font, _text);
+            p.drawPath(path);
+        // draw the normal text
             p.setPen(QPen(Qt::yellow));
-            p.setFont(QFont("Times", 30, QFont::Bold));
             p.drawText(rect(), Qt::AlignTop, _text);
         }
     }
