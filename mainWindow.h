@@ -103,10 +103,11 @@ class MainWindow : public QMainWindow
     
     virtual void keyPressEvent(QKeyEvent *event)
     {
-        if (event->key() == Qt::Key_Escape) {
+        switch(event->key()) {
+          case Qt::Key_Escape:
             exit(0);
-        }
-        if (event->key() == Qt::Key_F) {
+            break;
+          case Qt::Key_F:
             _fullscreen = !_fullscreen.toBool();
             if (!_fullscreen.toBool()) {
                 restoreGeometry(_geometry);
@@ -114,6 +115,13 @@ class MainWindow : public QMainWindow
                 _geometry = saveGeometry();
             }
             setScreenSize();
+            break;
+          case Qt::Key_N:
+            nextImage();
+            break;
+          case Qt::Key_P:
+            prevImage();
+            break;
         }
     }
 
