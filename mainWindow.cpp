@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QImageReader>
+#include <QThreadPool>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
@@ -18,7 +19,34 @@
 
 #include "sleepyTime.h"
 
-// #define TEST_SINGLE_IMAGE
+class LoadSlideShow : public QRunnable {
+    
+    MainWindow *_win;
+  public:
+    LoadSlideShow(MainWindow *win) {
+        _win = win;
+    }
+
+    void run() override {
+        if (!_win->loadImagesFromDirectoryName(_win->_directory.toString())) {
+            QMessageBox box;
+            box.setText("No Images found");
+            box.exec();
+            exit(0);
+        }
+
+    // randomize list
+        if (_win->_randomMode.toBool()) {
+            std::random_device rng;
+            std::mt19937 urng( rng() );
+            std::shuffle(_win->_names.begin()
+                         ,_win->_names.end(), urng);
+        }
+        qDebug() << "ready";
+        _win->_ready = true;            // indicate we're done
+    }
+};
+
 
 MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
@@ -41,12 +69,6 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     
 // allow drag-drops
     setAcceptDrops(true);
-    
-#if 0
-    if (args.size() > 1) directory = args.at(1);
-    if (args.size() > 2) _secondsToShowImage = args.at(2).toInt();
-    if (args.size() > 3) displayFileName = (args.at(3).toInt() != 0);
-#endif
     
     {
         QFileInfo f(_directory.toString());
@@ -80,41 +102,27 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _label->setScaledContents(true);
     layout()->addWidget(_label);
 
-// for testing, load a single image
-
-#ifdef TEST_SINGLE_IMAGE
-
+// load an initial image while we wait for the list to
+// be created
+    
     QString path = QDir::currentPath();
-    path += "/testimage.jpg";
-    loadImage(path);
+    path += "/images/hello.jpg";
+    QFileInfo fileInfo(path);
+    if (fileInfo.exists())
+        loadImage(path);
 
-#else  // load slideshow
-
-    if (!loadImagesFromDirectoryName(_directory.toString())) {
-        QMessageBox box;
-        box.setText("No Images found");
-        box.exec();
-        exit(0);
-    }
-
-// randomize list
-    if (_randomMode.toBool()) {
-        std::random_device rng;
-        std::mt19937 urng( rng() );
-        std::shuffle(_names.begin(), _names.end(), urng);
-    }
-
-    showImage();                        // load initial image
-
-// create timer to display images
+// load the initial slide show in a Thread.  QTheadPool will
+// delete the thread when it's finished
+    
+    QThreadPool::globalInstance()->start(new LoadSlideShow(this));
+    
     _imagetimer = new QTimer;
     connect(_imagetimer,&QTimer::timeout, this,
-            [=]() {
-                showImage();
-            });
+                  [=]() {
+                      if (_ready)       // thread complete
+                          showImage();
+                  });
     _imagetimer->start(_secondsToShowImage.toInt() * 1000);
-
-#endif
 
 }
 

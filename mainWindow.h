@@ -72,7 +72,8 @@ class MainWindow : public QMainWindow
     int _currentN = 0;
     QList<QString> _names;
     QTimer *_imagetimer;
-
+    bool    _ready = false;
+    
     void processCommandLine(void);
     void nextImage(void);
     void prevImage(void);
