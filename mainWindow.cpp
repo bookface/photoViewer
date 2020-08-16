@@ -19,6 +19,12 @@
 
 #include "sleepyTime.h"
 
+//
+// This loads the slide show as a background thread.  The main window
+// will display an image while this is loading. Otherwise, it looks
+// like the program is not working while the data is getting loaded.
+// The flag "_ready" is set to true when this thread is complete.
+//
 class LoadSlideShow : public QRunnable {
     
     MainWindow *_win;
@@ -111,8 +117,8 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     if (fileInfo.exists())
         loadImage(path);
 
-// load the initial slide show in a Thread.  QTheadPool will
-// delete the thread when it's finished
+// Load the initial slide show in a Thread.  QThreadPool automatically
+// deletes the thread when it's finished
     
     QThreadPool::globalInstance()->start(new LoadSlideShow(this));
     
