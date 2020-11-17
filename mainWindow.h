@@ -98,7 +98,6 @@ class MainWindow : public QMainWindow
   protected:
 
     QByteArray _geometry;
-    
     void setScreenSize(void);
     void resizeLabel(void);
     

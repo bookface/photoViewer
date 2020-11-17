@@ -130,6 +130,9 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
                   });
     _imagetimer->start(_secondsToShowImage.toInt() * 1000);
 
+    show();
+    _geometry = saveGeometry();
+
 }
 
 void MainWindow::nextImage(void)

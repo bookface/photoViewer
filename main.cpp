@@ -30,6 +30,5 @@ int main(int argc, char *argv[])
 #endif
     
     MainWindow window(QCoreApplication::arguments());
-    window.show();
     return app.exec();
 }

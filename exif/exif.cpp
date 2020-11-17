@@ -96,16 +96,22 @@ int Exif::readJpegSections(QFile &file, int *Orientation)
         }
 
         data = new QByteArray(file.read(itemlen-2)); // Read the whole section.
-        if(data->isEmpty()) return -1; // Could not allocate memory
+//dgm        if(data->isEmpty()) return -1; // Could not allocate memory
 
-        if(data->size() != itemlen-2) return -1; // Premature end of file?
+        if(data->size() != itemlen-2) {
+            delete data; // dgm
+            return -1; // Premature end of file?
+        }
+
     //sections.append(section);
 
         switch(marker){
           case M_SOS:   // stop before hitting compressed data
+            delete data; // dgm
             return 0;
 
           case M_EOI:   // in case it's a tables-only JPEG stream
+            delete data; // dgm
             return -1;
 
           case M_COM: // Comment section
@@ -120,7 +126,6 @@ int Exif::readJpegSections(QFile &file, int *Orientation)
             if (itemlen >= 16){ // if Jfif header not too short
             // skipped
             }
-
             delete(data);
             break;
 
@@ -128,6 +133,7 @@ int Exif::readJpegSections(QFile &file, int *Orientation)
         // There can be different section using the same marker.
             if(data->left(4) == "Exif"){
                 processEXIF(data, itemlen, Orientation);
+                delete data; // dgm
                 break;
             }
         // Oterwise, discard this section.
@@ -152,13 +158,14 @@ int Exif::readJpegSections(QFile &file, int *Orientation)
           case M_SOF14:
           case M_SOF15:
         //process_SOFn(Data, marker);
+            delete data; // dgm
             break;
           default:
         // Skip any other sections.
+            delete data; // dgm
             break;
 
         } // switch
-
 
     } // for(;;)
 
