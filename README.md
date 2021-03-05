@@ -13,27 +13,34 @@ Remember to copy the qt plugins directory "imageformats" here.
 ---------------------------------------------------------------------------
 Supply a PhotoViewer.ini file with these fields:
 
-# where the photos are, this one pretty much required, others optional
+;# where the photos are, this one pretty much required, others optional
+
 Directory="<directory name of photos>"
 
-# If true, sleep for 1/2 the display time (give up the CPU). This is for
-# the Raspberry Pi (it was getting hot). Default false.
-# Program will be un-responsive of course.
+;# If true, sleep for 1/2 the display time (give up the CPU). This is for
+;# the Raspberry Pi (it was getting hot). Default false.
+;# Program will be un-responsive of course.
+
 SleepMode= <boolean>
 
-# Time to show each photo, default 30 seconds.
+;#Time to show each photo, default 30 seconds.
+
 DisplayTime = <seconds>
 
-# Display the file name, default true.
+;#Display the file name, default true.
+
 DisplayFileName = <boolean>
 
-# Fullscreen (default) or Windowed
+;#Fullscreen (default) or Windowed
+
 Fullscreen = <boolean>
 
-# Random mode, default true
+;#Random mode, default true
+
 Random = <boolean>
 
-# Hide the curor, default true
+;#Hide the curor, default true
+
 HideCursor = <boolean>
 
 ---------------------------------------------------------------------------
