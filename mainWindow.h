@@ -101,7 +101,7 @@ class MainWindow : public QMainWindow
     void setScreenSize(void);
     void resizeLabel(void);
     
-    virtual void keyPressEvent(QKeyEvent *event)
+    virtual void keyPressEvent(QKeyEvent *event) override
     {
         switch(event->key()) {
           case Qt::Key_Escape:
@@ -122,10 +122,12 @@ class MainWindow : public QMainWindow
           case Qt::Key_P:
             prevImage();
             break;
+          default:
+            QMainWindow::keyPressEvent(event);
         }
     }
 
-    virtual bool event(QEvent *event)
+    virtual bool event(QEvent *event) override
     {
         if (event->type() == QEvent::Resize) {
             resizeLabel();
@@ -133,7 +135,9 @@ class MainWindow : public QMainWindow
         return QMainWindow::event(event);
     }
 
-    virtual void wheelEvent(QWheelEvent *event) {
+    virtual void mousePressEvent(QMouseEvent *event) override;
+
+    virtual void wheelEvent(QWheelEvent *event) override {
         QPoint numDegrees = event->angleDelta() / 8;
         if (numDegrees.y() < 0) {
             nextImage();

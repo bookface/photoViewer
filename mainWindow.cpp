@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QImageReader>
 #include <QThreadPool>
+#include <QMenu>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
@@ -260,7 +261,10 @@ void MainWindow::resizeLabel(void)
         float scrWidth = width();
         float scrHeight = height();
         
-        if (h < 0.01f || w < 0.01f || scrHeight < 0.01f || scrWidth < 0.01f) return;  // prevent divide by zero
+        if (h < 0.01f ||
+            w < 0.01f ||
+            scrHeight < 0.01f ||
+            scrWidth < 0.01f) return;   // prevent divide by zero
         float scaleH = scrHeight / h;
         float scaleW = scrWidth / w;
         float scale = scaleH;
@@ -296,3 +300,19 @@ MainWindow::~MainWindow()
     delete _label;
     delete _imagetimer;
 }
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::RightButton || event->button()==Qt::LeftButton) {
+        QMenu menu(this);
+        QAction * quit = menu.addAction("Exit Program");
+        QAction * cancel = menu.addAction("Cancel");
+        QAction *selectedAction = menu.exec(QCursor::pos());
+        if(selectedAction == quit) {
+            close();
+        } else {
+            menu.close();
+        }
+    }
+}
+
