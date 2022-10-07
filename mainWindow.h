@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QMimeData>
 #include <QDir>
+#include <QPainterPath>
 #include <iostream>
 
 class MyLabel : public QLabel {
@@ -34,8 +35,13 @@ class MyLabel : public QLabel {
   protected:
     virtual void paintEvent(QPaintEvent *) override {
         QPainter p(this);
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+        const QPixmap pmap = this->pixmap();
+        p.drawPixmap(rect(), pmap);
+#else // assume 5
         const QPixmap *pmap = this->pixmap();
         p.drawPixmap(rect(), *pmap);
+#endif
         if (_displayFileName && _text.length()) {
         // create outline text
             p.setFont(_font);

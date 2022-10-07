@@ -117,7 +117,11 @@ class CommandLineOptions {
             // else just assign the value.
             //
                 if (s._name == tmp) {
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+                    if (s._result->typeId() == QMetaType::Bool ) {
+#else
                     if (s._result->type() == QVariant::Bool ) {
+#endif
                         bool b =(*s._result).toBool();
                         *s._result = !b;
                     } else {

@@ -1,6 +1,5 @@
 #include "mainWindow.h"
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QLayout>
 #include <QDirIterator>
 #include <QDebug>
@@ -256,8 +255,13 @@ void MainWindow::loadImage( const QString &fileName)
 void MainWindow::resizeLabel(void)
 {
     if (_label != nullptr) {
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+        float h = _label->pixmap().height();
+        float w = _label->pixmap().width();
+#else
         float h = _label->pixmap()->height();
         float w = _label->pixmap()->width();
+#endif
         float scrWidth = width();
         float scrHeight = height();
         

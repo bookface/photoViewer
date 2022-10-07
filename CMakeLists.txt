@@ -19,10 +19,10 @@ include_directories(
     )
 
 #--------------------------------------------------------------------------
-find_package(Qt5 COMPONENTS Core Gui Widgets )
-
-execute_process(COMMAND ${QMAKE_EXECUTABLE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION)
-message(STATUS "Qt Version: ${QT_VERSION}Location: ${Qt5_DIR}")
+# Set QT_VERSION using qmake.exe
+find_program(QMAKE_EXE NAMES qmake)
+execute_process(COMMAND ${QMAKE_EXE} -query QT_VERSION OUTPUT_VARIABLE QT_VERSION)
+message("QT VERSION ${QT_VERSION}")
 
 if(WIN32)
     set(winlibs
@@ -34,12 +34,24 @@ if(WIN32)
 endif()
 
 set(CMAKE_AUTOMOC ON)
-set(QT_LIBRARIES
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
-    ${winlibs}
-    )
+if(QT_VERSION LESS 6.0)
+    find_package(Qt5 COMPONENTS Core Gui Widgets )
+    set(QT_LIBRARIES
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Widgets
+        ${winlibs}
+        )
+# Qt Version 6
+else()
+    find_package(Qt6 COMPONENTS Core Gui Widgets)
+    set(QT_LIBRARIES
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+        ${winlibs}
+        )
+endif()    
 
 #--------------------------------------------------------------------------
 set(sources
