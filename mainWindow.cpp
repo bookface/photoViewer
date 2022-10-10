@@ -80,7 +80,8 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         QFileInfo f(_directory.toString());
         if (!f.exists()) {
             QMessageBox box;
-            box.setText(QString("Photo Directory %1 Not Found").arg(_directory.toString()));
+            box.setText(QString("Photo Directory %1 Not Found")
+                        .arg(_directory.toString()));
             box.exec();
             exit(0);
         }
@@ -202,7 +203,12 @@ void MainWindow::loadImage( const QString &fileName)
         return;
     }
 
-    if (_label->_displayFileName) {
+//
+// donn, Oct 10, 2022 - always load the file name
+// into the _text variable since we can now toggle the
+// display using the mouse pop up
+//
+    if (true) { // }_label->_displayFileName) {
         QFileInfo info(fileName);
     // just display the last directory + the file name
         QStringList list = fileName.split('/');
@@ -215,7 +221,6 @@ void MainWindow::loadImage( const QString &fileName)
             }
         } else {
             _label->_text = fileName;
-
         }
     }
     int orientation = getOrientation(fileName);
@@ -307,13 +312,19 @@ MainWindow::~MainWindow()
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::RightButton || event->button()==Qt::LeftButton) {
+// either button toggles menu
+    if (event->button() == Qt::RightButton ||
+        event->button()==Qt::LeftButton) {
         QMenu menu(this);
         QAction * quit = menu.addAction("Exit Program");
+        QAction * displayname = menu.addAction("Display File Name");
         QAction * cancel = menu.addAction("Cancel");
         QAction *selectedAction = menu.exec(QCursor::pos());
         if(selectedAction == quit) {
             close();
+        }  else if (selectedAction == displayname) {
+            _label->_displayFileName = !_label->_displayFileName;
+            _label->update();
         } else {
             menu.close();
         }

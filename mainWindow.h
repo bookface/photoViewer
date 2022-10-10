@@ -42,7 +42,9 @@ class MyLabel : public QLabel {
         const QPixmap *pmap = this->pixmap();
         p.drawPixmap(rect(), *pmap);
 #endif
-        if (_displayFileName && _text.length()) {
+
+    // old large top of screen, file name display
+        if (false) { // }_displayFileName && _text.length()) {
         // create outline text
             p.setFont(_font);
             QPen pen;
@@ -55,6 +57,23 @@ class MyLabel : public QLabel {
         // draw the normal text
             p.setPen(QPen(Qt::yellow));
             p.drawText(rect(), Qt::AlignTop, _text);
+        }
+
+    // new small, lower left file name display
+        if (_displayFileName && _text.length()) {
+//            p.setBrush(QColor(Qt::white));
+            p.setBrush(QColor(Qt::black));
+            auto len = _text.length() * 10; // 360
+            QRectF rectangle(0, height()-30, len, 60.0);
+            p.drawRect(rectangle);
+            QFont font = p.font();
+            font.setPointSize(15);
+            p.setFont(font);
+            QPen pen;
+//            pen.setColor(Qt::black);
+            pen.setColor(Qt::white);
+            p.setPen(pen);
+            p.drawText(0,height()-10,_text);
         }
     }
 };
