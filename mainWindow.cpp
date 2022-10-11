@@ -209,8 +209,9 @@ void MainWindow::loadImage( const QString &fileName)
 // display using the mouse pop up
 //
     int orientation = getOrientation(fileName,_datetime);
-//    qDebug() << "Orientation" << orientation << _date;
+//    qDebug() << "Orientation" << orientation << _datetime;
     _date = _datetime.left(10);
+
     if (true) { // }_label->_displayFileName) {
         QFileInfo info(fileName);
     // just display the last directory + the file name
