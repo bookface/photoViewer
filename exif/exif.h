@@ -1,3 +1,4 @@
+
 #ifndef EXIF_H
 #define EXIF_H
 
@@ -17,15 +18,16 @@ class Exif {
     ~Exif();
     int getExifOrientation(QFile &file, int *Orientation);
     int readJpegFile(QFile &file, int *Orientation);
-    int readJpegSections(QFile &file, int *Orientation);
-    int processEXIF(QByteArray *barr, int itemlen, int *Orientation);
+    int readJpegSections(QFile &file, int *Orientation,char *datetime);
+    int processEXIF(QByteArray *barr, int itemlen, int *Orientation,char *datetime);
     int processEXIFDir(const char *dirStart
                        ,const char *offsetBase
                        ,rint32u size
                        ,rint32u nesting
                        ,int MotorolaOrder
                        ,int *numOrientations
-                       ,int *Orientation);
+                       ,int *Orientation
+                       ,char *datetime);
 };
 
 

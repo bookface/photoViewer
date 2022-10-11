@@ -19,15 +19,19 @@ static const char * orients[] = {
 };
 #endif
 
-int MainWindow::getOrientation(const QString &filename)
+int MainWindow::getOrientation(const QString &filename, QString &qdatetime)
 {
+    char datetime[21];
+    memset(datetime,0,21);
     QFile file(filename);
     int orientation = 0;
     if (file.open(QIODevice::ReadOnly) == true) {
         Exif exif;
-        exif.readJpegSections(file, &orientation);
+        exif.readJpegSections(file, &orientation,datetime);
         file.close();
     }
 //    qDebug() << "Orienta " << orients[orientation];
+//    qDebug() << "datetime" << datetime;
+    qdatetime = datetime;
     return orientation;
 }

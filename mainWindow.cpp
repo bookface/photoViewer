@@ -208,6 +208,9 @@ void MainWindow::loadImage( const QString &fileName)
 // into the _text variable since we can now toggle the
 // display using the mouse pop up
 //
+    int orientation = getOrientation(fileName,_datetime);
+//    qDebug() << "Orientation" << orientation << _date;
+    _date = _datetime.left(10);
     if (true) { // }_label->_displayFileName) {
         QFileInfo info(fileName);
     // just display the last directory + the file name
@@ -222,9 +225,10 @@ void MainWindow::loadImage( const QString &fileName)
         } else {
             _label->_text = fileName;
         }
+        if (_date.length() > 0) {
+            _label->_text += " | " + _date;
+        }
     }
-    int orientation = getOrientation(fileName);
-//    qDebug() << "Orientation" << orientation;
     QTransform rot;
     switch(orientation) {
       case 3:                           // 180 flip

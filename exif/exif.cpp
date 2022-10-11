@@ -56,7 +56,7 @@ rint8u readByte(QFile &file)
 //--------------------------------------------------------------------------
 // Parse the marker stream until SOS or EOI is seen;
 //--------------------------------------------------------------------------
-int Exif::readJpegSections(QFile &file, int *Orientation)
+int Exif::readJpegSections(QFile &file, int *Orientation, char *datetime)
 {
     QByteArray *data;
     rint8u a;
@@ -132,7 +132,7 @@ int Exif::readJpegSections(QFile &file, int *Orientation)
           case M_EXIF:
         // There can be different section using the same marker.
             if(data->left(4) == "Exif"){
-                processEXIF(data, itemlen, Orientation);
+                processEXIF(data, itemlen, Orientation,datetime);
                 delete data; // dgm
                 break;
             }
@@ -257,10 +257,12 @@ double ConvertAnyFormat(const void * ValuePtr, int Format, int MotorolaOrder)
 }
 
 
-
+// http://www.fifi.org/doc/jhead/exif-e.html#ExifTags
 #define TAG_ORIENTATION        0x0112
 #define TAG_INTEROP_OFFSET     0xA005
 #define TAG_EXIF_OFFSET        0x8769
+#define TAG_DATETIME           0x0132
+
 const int BytesPerFormat[] = {0,1,1,2,4,8,1,1,2,4,8,4,8};
 
 
@@ -271,7 +273,8 @@ int Exif::processEXIFDir(const char *DirStart
                          ,rint32u nesting
                          ,int MotorolaOrder
                          ,int *NumOrientations
-                         ,int *Orientation)
+                         ,int *Orientation
+                         ,char *datetime)
 {
     int numDirEntries;
 
@@ -316,6 +319,11 @@ int Exif::processEXIFDir(const char *DirStart
 
     // Extract useful components of tag
         switch(Tag){
+
+          case TAG_DATETIME:
+            strncpy(datetime,ValuePtr,20);
+            break;
+
           case TAG_ORIENTATION:
             if (*NumOrientations >= 2){
             // Can have another orientation tag for the thumbnail, but if there's
@@ -348,7 +356,8 @@ int Exif::processEXIFDir(const char *DirStart
                                ,nesting+1
                                ,MotorolaOrder
                                ,NumOrientations
-                               ,Orientation);
+                               ,Orientation
+                               ,datetime);
             }
             continue;
             break;
@@ -365,7 +374,7 @@ int Exif::processEXIFDir(const char *DirStart
 
 // Process a EXIF marker
 // Describes all the drivel that most digital cameras include...
-int Exif::processEXIF(QByteArray *data, int itemlen, int *Orientation)
+int Exif::processEXIF(QByteArray *data, int itemlen, int *Orientation, char *datetime)
 {
     int MotorolaOrder = 0;
 
@@ -406,8 +415,9 @@ int Exif::processEXIF(QByteArray *data, int itemlen, int *Orientation)
                    ,0
                    ,MotorolaOrder
                    ,&numOrientations
-                   ,Orientation);
+                   ,Orientation
+                   ,datetime);
 //qDebug() << "num orientations:" << numOrientations;
-
+//    qDebug() << "DATE TIME" << datetime;
     return 0;
 }
