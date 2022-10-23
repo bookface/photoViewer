@@ -97,6 +97,7 @@ class MainWindow : public QMainWindow
     int _numFiles = 0;
     int _lastN = 0;
     int _currentN = 0;
+    bool _pause = false;
     QList<QString> _names;
     QTimer *_imagetimer;
     bool    _ready = false;

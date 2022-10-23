@@ -146,6 +146,7 @@ void MainWindow::nextImage(void)
     _currentN = _lastN;
     showImage();
     _imagetimer->start();
+
 }
 
 void MainWindow::prevImage(void)
@@ -177,6 +178,8 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 
 void MainWindow::showImage(void)
 {
+    if (_pause) return;
+    
     _lastN = _currentN;
     _currentN++;
 
@@ -318,20 +321,25 @@ MainWindow::~MainWindow()
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
 // either button toggles menu
-    if (event->button() == Qt::RightButton ||
-        event->button()==Qt::LeftButton) {
+// donn, Oct 23, 2022 changed to right button only, press
+// left button to cancel. Added pause
+//
+    if (event->button() == Qt::RightButton) { // }||
+//        event->button()==Qt::LeftButton) {
         QMenu menu(this);
-        QAction * quit = menu.addAction("Exit Program");
+        QAction * pause = menu.addAction(_pause ? "Continue" : "Pause");
         QAction * displayname = menu.addAction("Display File Name");
-        QAction * cancel = menu.addAction("Cancel");
+        QAction * quit = menu.addAction("Exit Program");
         QAction *selectedAction = menu.exec(QCursor::pos());
+        if (selectedAction == pause) {
+            _pause = !_pause;
+            if (!_pause) nextImage();
+        }
         if(selectedAction == quit) {
             close();
         }  else if (selectedAction == displayname) {
             _label->_displayFileName = !_label->_displayFileName;
             _label->update();
-        } else {
-            menu.close();
         }
     }
 }
