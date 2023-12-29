@@ -55,9 +55,11 @@ endif()
 
 #--------------------------------------------------------------------------
 set(sources
+    ./mainWindow.h
     ./main.cpp
     ./mainWindow.cpp
-    ./mainWindow.h
+    ./mainWindowEvents.cpp
+    ./myLabel.cpp
     ./processCommandLine.cpp
     ./getOrientation.cpp
     ./exif/exif.cpp

@@ -1,3 +1,5 @@
+// -*- coding: utf-8 -*-
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 #include "mainWindow.h"
 #include <QApplication>
 #include <QLayout>
@@ -8,6 +10,11 @@
 #include <QImageReader>
 #include <QThreadPool>
 #include <QMenu>
+#include <QDir>
+#include <QGraphicsOpacityEffect>
+#include <QPainter>
+#include <QTimer>
+#include <QDebug>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QScreen>
@@ -19,7 +26,7 @@
 
 #include "sleepyTime.h"
 
-//
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 // This loads the slide show as a background thread.  The main window
 // will display an image while this is loading. Otherwise, it looks
 // like the program is not working while the data is getting loaded.
@@ -48,20 +55,23 @@ class LoadSlideShow : public QRunnable {
             std::shuffle(_win->_names.begin()
                          ,_win->_names.end(), urng);
         }
-        qDebug() << "ready";
         _win->_ready = true;            // indicate we're done
     }
 };
 
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 MainWindow::MainWindow(QStringList args, QWidget *parent)
     : QMainWindow(parent)
 {
+// read settings from ini file
     QSettings settings("PhotoViewer.ini",QSettings::IniFormat);
     _directory = settings.value("Directory","./photos").value<QString>();
     _sleepMode = settings.value("SleepMode",_sleepMode).value<bool>();
-    _secondsToShowImage = settings.value("DisplayTime",_secondsToShowImage).value<int>();
-    _displayFileName = settings.value("DisplayFileName",_displayFileName).value<bool>();
+    _secondsToShowImage = settings.value("DisplayTime"
+                                         ,_secondsToShowImage).value<int>();
+    _displayFileName = settings.value("DisplayFileName"
+                                      ,_displayFileName).value<bool>();
     _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
     _randomMode = settings.value("Random",_randomMode).value<bool>();
     _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
@@ -76,6 +86,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 // allow drag-drops
     setAcceptDrops(true);
     
+// check for directory existance
     {
         QFileInfo f(_directory.toString());
         if (!f.exists()) {
@@ -99,24 +110,29 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
         resize(screenGeometry.width() * 0.75
                ,screenGeometry.height() * 0.75);
     }
+
+// create labels
+    for (int i = 0; i < numLabels; ++i) {
+        _label[i] = new MyLabel(this);
+        _label[i]->_displayFileName = _displayFileName.toBool();
+        _label[i]->setSizePolicy(QSizePolicy::Ignored,
+                                 QSizePolicy::Ignored);
+        _label[i]->setScaledContents(true);
+    }
+// set up window
     setScreenSize();
 
-// create a label to show the picture
-    _label = new MyLabel(this);
-    _label->_displayFileName = _displayFileName.toBool();
-    _label->setSizePolicy(QSizePolicy::Ignored,
-                          QSizePolicy::Ignored);
-    _label->setScaledContents(true);
-    layout()->addWidget(_label);
-
-// load an initial image while we wait for the list to
-// be created
-    
+// load an initial image onto both labels while we
+// wait for the list to be created
     QString path = QDir::currentPath();
-    path += "/images/hello.jpg";
+    path += "/images/hello.png";
     QFileInfo fileInfo(path);
-    if (fileInfo.exists())
-        loadImage(path);
+    if (fileInfo.exists()) {
+        for (int i = 0; i < numLabels; ++i) {
+            _currentLabel = i;
+            loadImage(path);
+        }
+    }
 
 // Load the initial slide show in a Thread.  QThreadPool automatically
 // deletes the thread when it's finished
@@ -126,16 +142,24 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _imagetimer = new QTimer;
     connect(_imagetimer,&QTimer::timeout, this,
                   [=]() {
-                      if (_ready)       // thread complete
-                          showImage();
+                      if (_ready) {       // thread complete
+                          showImage();    // display next image
+                      }
                   });
     _imagetimer->start(_secondsToShowImage.toInt() * 1000);
 
     show();
     _geometry = saveGeometry();
+    _opTimer = new QTimer(this);
+    connect(_opTimer,&QTimer::timeout, this,
+                  [=]() {
+                      this->setOpacity();
+                  });
 
+    
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::nextImage(void)
 {
     if (_names.size() == 0 ) return;    // single image display
@@ -149,6 +173,7 @@ void MainWindow::nextImage(void)
 
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::prevImage(void)
 {
     if (_names.size() == 0 ) return;    // single image display
@@ -160,6 +185,7 @@ void MainWindow::prevImage(void)
     _imagetimer->start();
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 {
     QDirIterator it(dirName, QDirIterator::Subdirectories);
@@ -176,33 +202,44 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
     return _names.size() > 0 ? true : false;
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::showImage(void)
 {
     if (_pause) return;
-    
+
     _lastN = _currentN;
     _currentN++;
 
     if (_currentN >= _names.size()) {
-// end of list reached, re-sort list with new random call
+    // end of list reached, re-sort list with new random call
         std::random_device rng;
         std::mt19937 urng( rng() );
         std::shuffle(_names.begin(), _names.end(), urng);
         _currentN = _lastN = 0;
     }
     
+// move to next label
+    _currentLabel = 1 - _currentLabel;
+// start out new image with 0 opacity and fade in
+    _label[_currentLabel]->setOpacity(0);
     loadImage(_names[_currentN]);
+
+    _opacity = 1.0;
+    _opTimer->start(100);
 
     if (_sleepMode.toBool()) {
         Sleep(_secondsToShowImage.toInt() * 1000 / 2);
     }
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::loadImage( const QString &fileName)
 {
+    MyLabel *label = _label[_currentLabel];
+    
     QImage image;
     if (!image.load(fileName)) {
-        _label->_text = QString("Cant load %1").arg(fileName);
+        label->_text = QString("Cant load %1").arg(fileName);
         return;
     }
 
@@ -215,24 +252,26 @@ void MainWindow::loadImage( const QString &fileName)
 //    qDebug() << "Orientation" << orientation << _datetime;
     _date = _datetime.left(10);
 
-    if (true) { // }_label->_displayFileName) {
+    {
         QFileInfo info(fileName);
     // just display the last directory + the file name
         QStringList list = fileName.split('/');
         int sz = list.size();
         if (sz > 2) {
-            if (_label->_displayDirectory) {
-                _label->_text = list[sz-2] + "/" + list[sz-1];
+            if (label->_displayDirectory) {
+                label->_text = list[sz-2] + "/" + list[sz-1];
             } else {
-                _label->_text = list[sz-1];
+                label->_text = list[sz-1];
             }
         } else {
-            _label->_text = fileName;
+            label->_text = fileName;
         }
         if (_date.length() > 0) {
-            _label->_text += " | " + _date;
+            label->_text += " | " + _date;
         }
     }
+
+// rotate image if needed
     QTransform rot;
     switch(orientation) {
       case 3:                           // 180 flip
@@ -244,6 +283,8 @@ void MainWindow::loadImage( const QString &fileName)
       case 8:                           // 270 rot
         rot.rotate(-90);
         break;
+      default:
+        break;
     }
 
 //
@@ -254,26 +295,27 @@ void MainWindow::loadImage( const QString &fileName)
 // to the screen size
 //    
     if (image.width() > width()) {
-        _label->setPixmap(QPixmap::fromImage(image)
-                          .transformed(rot).scaled(QSize(width(),height())
-                                                   ,Qt::KeepAspectRatio,
-                                                   Qt::SmoothTransformation));
+        label->setPixmap(QPixmap::fromImage(image)
+                         .transformed(rot).scaled(QSize(width(),height())
+                                                  ,Qt::KeepAspectRatio,
+                                                  Qt::SmoothTransformation));
     } else {
-        _label->setPixmap(QPixmap::fromImage(image).transformed(rot));
+        label->setPixmap(QPixmap::fromImage(image).transformed(rot));
     }
-    resizeLabel();
-     
+
+    resizeLabel(label);
 }
 
-void MainWindow::resizeLabel(void)
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+void MainWindow::resizeLabel(MyLabel *label)
 {
-    if (_label != nullptr) {
+    if (label != nullptr) {
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-        float h = _label->pixmap().height();
-        float w = _label->pixmap().width();
+        float h = label->pixmap().height();
+        float w = label->pixmap().width();
 #else
-        float h = _label->pixmap()->height();
-        float w = _label->pixmap()->width();
+        float h = label->pixmap()->height();
+        float w = label->pixmap()->width();
 #endif
         float scrWidth = width();
         float scrHeight = height();
@@ -288,13 +330,15 @@ void MainWindow::resizeLabel(void)
         if (scaleW < scaleH) {
             scale = scaleW;
         }
-        _label->resize(w * scale,h * scale);
+        label->resize(w * scale,h * scale);
         float spaceLeftW = (scrWidth - w * scale) / 2.f;
         float spaceLeftH = (scrHeight - h * scale) / 2.f;
-        _label->move(spaceLeftW,spaceLeftH);
+        label->move(spaceLeftW,spaceLeftH);
     }
 }
 
+
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::setScreenSize(void)
 {
     if (_fullscreen.toBool()) {
@@ -312,35 +356,23 @@ void MainWindow::setScreenSize(void)
     show();
 }
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 MainWindow::~MainWindow()
 {
-    delete _label;
+    for (int i = 0; i < numLabels; ++i) {
+        delete _label[i];
+    }
     delete _imagetimer;
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *event)
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+void MainWindow::setOpacity(void)
 {
-// either button toggles menu
-// donn, Oct 23, 2022 changed to right button only, press
-// left button to cancel. Added pause
-//
-    if (event->button() == Qt::RightButton) { // }||
-//        event->button()==Qt::LeftButton) {
-        QMenu menu(this);
-        QAction * pause = menu.addAction(_pause ? "Continue" : "Pause");
-        QAction * displayname = menu.addAction("Display File Name");
-        QAction * quit = menu.addAction("Exit Program");
-        QAction *selectedAction = menu.exec(QCursor::pos());
-        if (selectedAction == pause) {
-            _pause = !_pause;
-            if (!_pause) nextImage();
-        }
-        if(selectedAction == quit) {
-            close();
-        }  else if (selectedAction == displayname) {
-            _label->_displayFileName = !_label->_displayFileName;
-            _label->update();
-        }
+    if (_opacity <= 0.0) {              // stop fading
+        _opTimer->stop();
+    } else {
+        _label[1-_currentLabel]->setOpacity(_opacity); // fade out last
+        _label[_currentLabel]->setOpacity(1-_opacity); // fade in current
     }
+    _opacity -= 0.1;
 }
-

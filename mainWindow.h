@@ -1,4 +1,5 @@
 //-*-c++-*-
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 #pragma once
 #ifndef MAINWINDOW_H
@@ -6,107 +7,63 @@
 
 #include <QMainWindow>
 #include <QLabel>
-#include <QKeyEvent>
 #include <QList>
-#include <QTimer>
-#include <QPainter>
-#include <QDebug>
-#include <QMimeData>
-#include <QDir>
-#include <QPainterPath>
-#include <iostream>
 
+class QGraphicsOpacityEffect;
+class QPaintEvent;
+class QTimer;
+
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 class MyLabel : public QLabel {
 
+    Q_OBJECT
+    
     QFont _font;
-
+    QGraphicsOpacityEffect *_effect;
+    
   public:
-    MyLabel(QWidget *parent = nullptr):QLabel(parent) {
-        _font.setFamily("Times");
-        _font.setPointSize(30);
-        _font.setWeight(QFont::Bold);
-        _font.setStyleStrategy(QFont::PreferAntialias);
-        
-    }
+    MyLabel(QWidget *parent = nullptr);
+    void setOpacity(qreal v);
+
     QString _text;
     bool    _displayFileName = true;
     bool    _displayDirectory = true;
-
+    
   protected:
-    virtual void paintEvent(QPaintEvent *) override {
-        QPainter p(this);
-#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-        const QPixmap pmap = this->pixmap();
-        p.drawPixmap(rect(), pmap);
-#else // assume 5
-        const QPixmap *pmap = this->pixmap();
-        p.drawPixmap(rect(), *pmap);
-#endif
-
-    // old large top of screen, file name display
-        if (false) { // }_displayFileName && _text.length()) {
-        // create outline text
-            p.setFont(_font);
-            QPen pen;
-            pen.setWidth(10);
-            pen.setColor(Qt::black);
-            p.setPen(pen);
-            QPainterPath path;
-            path.addText(0, 40, _font, _text);
-            p.drawPath(path);
-        // draw the normal text
-            p.setPen(QPen(Qt::yellow));
-            p.drawText(rect(), Qt::AlignTop, _text);
-        }
-
-    // new small, lower left file name display
-        if (_displayFileName && _text.length()) {
-//            p.setBrush(QColor(Qt::white));
-            p.setBrush(QColor(Qt::black));
-            auto len = _text.length() * 10; // 360
-            QRectF rectangle(0, height()-30, len, 60.0);
-            p.drawRect(rectangle);
-            QFont font = p.font();
-            font.setPointSize(15);
-            p.setFont(font);
-            QPen pen;
-//            pen.setColor(Qt::black);
-            pen.setColor(Qt::white);
-            p.setPen(pen);
-            p.drawText(0,height()-10,_text);
-        }
-    }
+    virtual void paintEvent(QPaintEvent *) override;
 };
 
-class MainWindow : public QMainWindow
-{
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+class MainWindow : public QMainWindow {
+
     Q_OBJECT
 
   public:
-    MainWindow(QStringList args, QWidget *parent = 0);
+    MainWindow(QStringList args, QWidget *parent = nullptr);
     ~MainWindow();
-    MyLabel *_label = nullptr;
-
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
     void loadImage( const QString &fileName);
     int  getOrientation(const QString &fileName, QString &datetime);
+    void processCommandLine(void);
+    void nextImage(void);
+    void prevImage(void);
+    void setOpacity(void);
+
+    static const int numLabels = 2;
+    MyLabel *_label[numLabels];
+    int _currentLabel = 0;
     QString _datetime;
     QString _date;
-    
     int _numFiles = 0;
     int _lastN = 0;
     int _currentN = 0;
     bool _pause = false;
     QList<QString> _names;
     QTimer *_imagetimer;
+    QTimer *_opTimer;
     bool    _ready = false;
     
-    void processCommandLine(void);
-    void nextImage(void);
-    void prevImage(void);
-    
-
 //
 // Program options - QVariant's makes it simplier to load
 // from the command line or the configuration file
@@ -125,80 +82,18 @@ class MainWindow : public QMainWindow
     
   protected:
 
-    QByteArray _geometry;
     void setScreenSize(void);
-    void resizeLabel(void);
-    
-    virtual void keyPressEvent(QKeyEvent *event) override
-    {
-        switch(event->key()) {
-          case Qt::Key_Escape:
-            exit(0);
-            break;
-          case Qt::Key_F:
-            _fullscreen = !_fullscreen.toBool();
-            if (!_fullscreen.toBool()) {
-                restoreGeometry(_geometry);
-            } else {
-                _geometry = saveGeometry();
-            }
-            setScreenSize();
-            break;
-          case Qt::Key_N:
-            nextImage();
-            break;
-          case Qt::Key_P:
-            prevImage();
-            break;
-          default:
-            QMainWindow::keyPressEvent(event);
-        }
-    }
-
-    virtual bool event(QEvent *event) override
-    {
-        if (event->type() == QEvent::Resize) {
-            resizeLabel();
-        }
-        return QMainWindow::event(event);
-    }
-
+    void resizeLabel(MyLabel *);
+    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual bool event(QEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
-
-    virtual void wheelEvent(QWheelEvent *event) override {
-        QPoint numDegrees = event->angleDelta() / 8;
-        if (numDegrees.y() < 0) {
-            nextImage();
-        } else if (numDegrees.y() > 0) {
-            prevImage();
-        }
-    }
-    
+    virtual void wheelEvent(QWheelEvent *event) override;
 // be sure to call setAcceptDrops(true) in constructor
-    virtual void dragEnterEvent(QDragEnterEvent *event) override {
-        if (event->mimeData()->hasUrls()) {
-            event->acceptProposedAction();
-        }
-    }
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dropEvent(QDropEvent *event) override;
 
-    virtual void dropEvent(QDropEvent *event) override {
-        auto urls = event->mimeData()->urls();
-        if (urls.size() == 0) return;
-        auto dirname  = urls.first().path();
-        auto fileName = urls.first().toLocalFile();
-        qDebug() << dirname << fileName;
-    // stars directorys with '/' for some reason
-        if (dirname[0]=='/') {
-            dirname.remove(0, 1); 
-        }
-        _names.clear();
-        QDir qdir(dirname);
-        if (qdir.exists()) {
-            loadImagesFromDirectoryName(dirname);
-            showImage();
-        } else if (QFile::exists(fileName))
-            loadImage(fileName);
-    }
+    qreal      _opacity = 1.0;
+    QByteArray _geometry;
 
 };
 
