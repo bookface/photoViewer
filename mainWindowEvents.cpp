@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <QMimeData>
 #include <QDir>
+#include <QDebug>
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::mousePressEvent(QMouseEvent *event)

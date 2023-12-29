@@ -314,8 +314,9 @@ void MainWindow::resizeLabel(MyLabel *label)
         float h = label->pixmap().height();
         float w = label->pixmap().width();
 #else
-        float h = label->pixmap()->height();
-        float w = label->pixmap()->width();
+        auto pm=label->pixmap(Qt::ReturnByValue);
+        float h = pm.height();
+        float w = pm.width();
 #endif
         float scrWidth = width();
         float scrHeight = height();

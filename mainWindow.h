@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QList>
+#include <QVariant>
 
 class QGraphicsOpacityEffect;
 class QPaintEvent;
