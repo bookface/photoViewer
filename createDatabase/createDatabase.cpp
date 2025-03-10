@@ -1,7 +1,7 @@
 //-*-c++-*-
 //-*- coding: utf-8 -*-
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-/*$C gcc -std=c++20 createDatabase.cpp -o createDatabase -Isqlite -Lsqlite -l:libsqlitelib.a -lstdc++ */
+/*$C gcc -std=c++20 createDatabase.cpp -o createDatabase -Isqlite -Lsqlite -l:sqlite3.a -lstdc++ */
 
 #include <iostream>
 #include <string>

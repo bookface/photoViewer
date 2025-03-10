@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QList>
 #include <QVariant>
+#include "roundRobin.h"
 
 class QGraphicsOpacityEffect;
 class QPaintEvent;
@@ -44,15 +45,15 @@ class MainWindow : public QMainWindow {
     ~MainWindow();
     bool loadImagesFromDirectoryName(const QString &dirName);
     void showImage(void);
-    void loadImage( const QString &fileName);
+    bool loadImage( const QString &fileName);
     int  getOrientation(const QString &fileName, QString &datetime);
     void processCommandLine(void);
     void nextImage(void);
     void prevImage(void);
     void setOpacity(void);
 
-    static const int numLabels = 2;
-    MyLabel *_label[numLabels];
+    static const int _numLabels = 2;
+    MyLabel *_label[_numLabels];
     int _currentLabel = 0;
     QString _datetime;
     QString _date;
@@ -64,6 +65,7 @@ class MainWindow : public QMainWindow {
     QTimer *_imagetimer;
     QTimer *_opTimer;
     bool    _ready = false;
+    bool    _usesqlite = false;
     
 //
 // Program options - QVariant's makes it simplier to load
@@ -80,6 +82,7 @@ class MainWindow : public QMainWindow {
     QVariant _hideCursor = true;
     QVariant _randomMode = true;
     QVariant _fullscreen = true;
+    QVariant _sqlite     = "";
     
   protected:
 
@@ -95,6 +98,11 @@ class MainWindow : public QMainWindow {
 
     qreal      _opacity = 1.0;
     QByteArray _geometry;
+
+// sqlite functions
+    bool openDatabase(const QString &filename);
+    unsigned char *getImage(void);
+    RoundRobinList<QString> _rrList; // (10);
 
 };
 

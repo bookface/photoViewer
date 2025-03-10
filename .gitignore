@@ -3,3 +3,7 @@ bin
 build
 imageformats
 PhotoViewer.ini
+*.exe
+*.o
+*.db
+*.a

@@ -75,6 +75,20 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
     _randomMode = settings.value("Random",_randomMode).value<bool>();
     _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
+    _sqlite     = settings.value("SqLite","").value<QString>();
+
+// check for existance of sqlite database
+    if (_sqlite != "" ) {
+        QFileInfo f(_sqlite.toString());
+        if (!f.exists()) {
+            QMessageBox box;
+            box.setText(QString("SqLite file %1 Not Found")
+                        .arg(_sqlite.toString()));
+            box.exec();
+            exit(0);
+        }
+        _usesqlite = openDatabase(_sqlite.toString());
+    }
     
 // override settings with command line options
     processCommandLine();
@@ -87,7 +101,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     setAcceptDrops(true);
     
 // check for directory existance
-    {
+    if (!_usesqlite) {
         QFileInfo f(_directory.toString());
         if (!f.exists()) {
             QMessageBox box;
@@ -111,8 +125,8 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
                ,screenGeometry.height() * 0.75);
     }
 
-// create labels
-    for (int i = 0; i < numLabels; ++i) {
+// create labels (labels hold images)
+    for (int i = 0; i < _numLabels; ++i) {
         _label[i] = new MyLabel(this);
         _label[i]->_displayFileName = _displayFileName.toBool();
         _label[i]->setSizePolicy(QSizePolicy::Ignored,
@@ -124,20 +138,26 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 
 // load an initial image onto both labels while we
 // wait for the list to be created
-    QString path = QDir::currentPath();
-    path += "/images/hello.png";
-    QFileInfo fileInfo(path);
-    if (fileInfo.exists()) {
-        for (int i = 0; i < numLabels; ++i) {
-            _currentLabel = i;
-            loadImage(path);
+    {
+        QString path = QDir::currentPath();
+        path += "/images/hello.png";
+        QFileInfo fileInfo(path);
+        if (fileInfo.exists()) {
+            for (int i = 0; i < _numLabels; ++i) {
+                _currentLabel = i;
+                loadImage(path);
+            }
         }
     }
 
 // Load the initial slide show in a Thread.  QThreadPool automatically
 // deletes the thread when it's finished
     
-    QThreadPool::globalInstance()->start(new LoadSlideShow(this));
+    if (!_usesqlite) {
+        QThreadPool::globalInstance()->start(new LoadSlideShow(this));
+    } else {
+        _ready = true;
+    }
     
     _imagetimer = new QTimer;
     connect(_imagetimer,&QTimer::timeout, this,
@@ -162,6 +182,22 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::nextImage(void)
 {
+#if 1
+    if (_usesqlite) {
+        QString next = _rrList.getNext();
+        loadImage(next);
+        _imagetimer->start();
+        return;
+    }
+#endif
+#if 0
+    if (_usesqlite) {
+        showImage();
+        _imagetimer->start();
+        return;
+    }
+#endif
+    
     if (_names.size() == 0 ) return;    // single image display
     ++_lastN;
     if (_lastN == _names.size()) {
@@ -176,6 +212,13 @@ void MainWindow::nextImage(void)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::prevImage(void)
 {
+    if (_usesqlite) {
+        QString prev = _rrList.getPrevious();
+        loadImage(prev);
+        _imagetimer->start();
+        return;
+    }
+
     if (_names.size() == 0 ) return;    // single image display
     
     int newone = _lastN - 1;
@@ -207,22 +250,32 @@ void MainWindow::showImage(void)
 {
     if (_pause) return;
 
-    _lastN = _currentN;
-    _currentN++;
+    if (!_usesqlite) {
+        _lastN = _currentN;
+        _currentN++;
 
-    if (_currentN >= _names.size()) {
-    // end of list reached, re-sort list with new random call
-        std::random_device rng;
-        std::mt19937 urng( rng() );
-        std::shuffle(_names.begin(), _names.end(), urng);
-        _currentN = _lastN = 0;
+        if (_currentN >= _names.size()) {
+        // end of list reached, re-sort list with new random call
+            std::random_device rng;
+            std::mt19937 urng( rng() );
+            std::shuffle(_names.begin(), _names.end(), urng);
+            _currentN = _lastN = 0;
+        }
     }
     
-// move to next label
+// move to next label (labels hold the images)
     _currentLabel = 1 - _currentLabel;
 // start out new image with 0 opacity and fade in
     _label[_currentLabel]->setOpacity(0);
-    loadImage(_names[_currentN]);
+
+    if (_usesqlite) {
+        QString name = (const char *)getImage();// load from database
+        if (loadImage(name)) {
+            _rrList.addItem(name);
+        }
+    } else {
+        loadImage(_names[_currentN]);
+    }
 
     _opacity = 1.0;
     _opTimer->start(100);
@@ -233,14 +286,14 @@ void MainWindow::showImage(void)
 }
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-void MainWindow::loadImage( const QString &fileName)
+bool MainWindow::loadImage( const QString &fileName)
 {
     MyLabel *label = _label[_currentLabel];
     
     QImage image;
     if (!image.load(fileName)) {
         label->_text = QString("Cant load %1").arg(fileName);
-        return;
+        return false;
     }
 
 //
@@ -304,6 +357,7 @@ void MainWindow::loadImage( const QString &fileName)
     }
 
     resizeLabel(label);
+    return true;
 }
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -360,7 +414,7 @@ void MainWindow::setScreenSize(void)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < numLabels; ++i) {
+    for (int i = 0; i < _numLabels; ++i) {
         delete _label[i];
     }
     delete _imagetimer;

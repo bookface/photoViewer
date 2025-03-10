@@ -16,6 +16,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/exif
     ${CMAKE_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/createDatabase/sqlite
     )
 
 #--------------------------------------------------------------------------
@@ -55,6 +56,7 @@ endif()
 
 #--------------------------------------------------------------------------
 set(sources
+    ./getImage.cpp
     ./mainWindow.h
     ./main.cpp
     ./mainWindow.cpp
@@ -63,6 +65,7 @@ set(sources
     ./processCommandLine.cpp
     ./getOrientation.cpp
     ./exif/exif.cpp
+    ./createDatabase/sqlite/sqlite3.c
     )
 
 #--------------------------------------------------------------------------
