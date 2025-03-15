@@ -72,7 +72,11 @@ set(sources
 add_executable(${exec} ${sources})
 
 #--------------------------------------------------------------------------
-target_link_libraries(${exec} ${QT_LIBRARIES} -lpthread -ldl)
+if(LINUX)
+    target_link_libraries(${exec} ${QT_LIBRARIES} -lpthread -ldl)
+else()
+    target_link_libraries(${exec} ${QT_LIBRARIES})
+endif()
 
 #--------------------------------------------------------------------------
 install(TARGETS ${exec}

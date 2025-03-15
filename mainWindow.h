@@ -82,8 +82,7 @@ class MainWindow : public QMainWindow {
     QVariant _hideCursor = true;
     QVariant _randomMode = true;
     QVariant _fullscreen = true;
-    QVariant _sqlite     = "";
-    
+    QString  _sqlite     = "";
   protected:
 
     void setScreenSize(void);
@@ -102,7 +101,10 @@ class MainWindow : public QMainWindow {
 // sqlite functions
     bool openDatabase(const QString &filename);
     unsigned char *getImage(void);
-    RoundRobinList<QString> _rrList; // (10);
+
+// if using the sqlite list, we need to keep a list so we
+// can move to prev/next in the list
+    RoundRobinList<QString> _rrList;
 
 };
 

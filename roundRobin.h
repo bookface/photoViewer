@@ -10,42 +10,46 @@ template <typename T>
 class RoundRobinList {
 
   public:
-    explicit RoundRobinList(int maxSize=20) : maxSize(maxSize), index(0) {}
+    RoundRobinList(int maxSize = 50) : _maxSize(maxSize), _index(0) {}
+    ~RoundRobinList() { _list.clear(); }
 
     void addItem(const T& item) {
-        if (list.size() >= maxSize) {
-            list.removeFirst();  // Remove oldest item
+        if (_list.size() >= _maxSize) {
+            _list.removeFirst();  // Remove oldest item
         }
-        list.append(item);  // Add new item
-        if (index >= list.size()) index = list.size() - 1; // Adjust index if needed
+        _list.append(item);             // Add new item to end
+        _index = _list.size() - 1;      // move to end of list
     }
 
     T getNext() {
-        if (list.isEmpty()) return T(); // Return default if empty
-
-        index = (index + 1) % list.size();
-        return list[index];
+        if (_list.isEmpty()) {
+            return T();                 // Return default if empty
+        }
+        _index = (_index + 1) % _list.size();
+        return _list[_index];
     }
 
     T getPrevious() {
-        if (list.isEmpty()) return T(); // Return default if empty
+        if (_list.isEmpty()) {
+            return T();                 // Return default if empty
+        }
 
-        index = (index - 1 + list.size()) % list.size();
-        return list[index];
+        _index = (_index - 1 + _list.size()) % _list.size();
+        return _list[_index];
     }
 
     int size() const {
-        return list.size();
+        return _list.size();
     }
 
 private:
-    QList<T> list;
-    int maxSize;
-    int index;
+    QList<T> _list;
+    int _maxSize;
+    int _index;
 };
 
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 #ifdef TESTING_ROUND_ROBIN
-
 int main() {
     RoundRobinList<QString> rrList(3);  // Fixed size of 3
 

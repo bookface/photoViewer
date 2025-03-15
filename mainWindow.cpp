@@ -75,19 +75,19 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
     _randomMode = settings.value("Random",_randomMode).value<bool>();
     _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
-    _sqlite     = settings.value("SqLite","").value<QString>();
-
+    _sqlite     = settings.value("SqLite","").toString();
+    
 // check for existance of sqlite database
     if (_sqlite != "" ) {
-        QFileInfo f(_sqlite.toString());
+        QFileInfo f(_sqlite);
         if (!f.exists()) {
             QMessageBox box;
             box.setText(QString("SqLite file %1 Not Found")
-                        .arg(_sqlite.toString()));
+                        .arg(_sqlite));
             box.exec();
             exit(0);
         }
-        _usesqlite = openDatabase(_sqlite.toString());
+        _usesqlite = openDatabase(_sqlite);
     }
     
 // override settings with command line options
@@ -185,11 +185,13 @@ void MainWindow::nextImage(void)
 #if 1
     if (_usesqlite) {
         QString next = _rrList.getNext();
+        if (next == "") return;         // not enough in list
         loadImage(next);
         _imagetimer->start();
         return;
     }
 #endif
+
 #if 0
     if (_usesqlite) {
         showImage();
@@ -214,6 +216,7 @@ void MainWindow::prevImage(void)
 {
     if (_usesqlite) {
         QString prev = _rrList.getPrevious();
+        if (prev == "") return;         // not enough in rrlist
         loadImage(prev);
         _imagetimer->start();
         return;
