@@ -72,10 +72,10 @@ set(sources
 add_executable(${exec} ${sources})
 
 #--------------------------------------------------------------------------
-if(LINUX)
-    target_link_libraries(${exec} ${QT_LIBRARIES} -lpthread -ldl)
-else()
+if(WIN32)
     target_link_libraries(${exec} ${QT_LIBRARIES})
+else()
+    target_link_libraries(${exec} ${QT_LIBRARIES} -lpthread -ldl)
 endif()
 
 #--------------------------------------------------------------------------
