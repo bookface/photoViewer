@@ -13,7 +13,8 @@
 namespace fs = std::filesystem;
 using namespace std;
 
-std::string directoryPath = "d:/Photos/Photos45 2024";
+// where are photos, or use argv[1]
+std::string directoryPath = "/media/donn/Data 2/Photos/Photos31";
 std::string databasePath = DB_FILE_NAME;
 std::string tableName    = TABLE_NAME;
 std::string fieldName    = FIELD_NAME;

@@ -74,8 +74,12 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
                                       ,_displayFileName).value<bool>();
     _hideCursor = settings.value("HideCursor",_hideCursor).value<bool>();
     _randomMode = settings.value("Random",_randomMode).value<bool>();
-    _fullscreen = settings.value("Fullscreen",_fullscreen).value<bool>();
-    _sqlite     = settings.value("SqLite","").toString();
+
+    _fullscreen = settings.value("Fullscreen",false).value<bool>() ||
+        settings.value("FullScreen",false).value<bool>();
+    
+    _sqlite = settings.value("SqLite","").toString();
+    if (_sqlite != "") qDebug() << "SqLite" << _sqlite;
     
 // check for existance of sqlite database
     if (_sqlite != "" ) {
@@ -121,8 +125,9 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     //
         QScreen* screen = QGuiApplication::primaryScreen();
         QRect screenGeometry = screen->geometry();
-        resize(screenGeometry.width() * 0.75
-               ,screenGeometry.height() * 0.75);
+        resize(screenGeometry.width() * 0.5
+               ,screenGeometry.height() * 0.5);
+        qDebug() << "width" << screenGeometry.width() * 0.5;
     }
 
 // create labels (labels hold images)
@@ -182,6 +187,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 void MainWindow::nextImage(void)
 {
+    qDebug() << "next image";
 #if 1
     if (_usesqlite) {
         QString next = _rrList.getNext();
@@ -273,6 +279,7 @@ void MainWindow::showImage(void)
 
     if (_usesqlite) {
         QString name = (const char *)getImage();// load from database
+        qDebug() << "sq show image" << name;
         if (loadImage(name)) {
             _rrList.addItem(name);
         }
