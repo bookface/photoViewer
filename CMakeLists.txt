@@ -62,6 +62,7 @@ set(sources
     ./mainWindow.cpp
     ./mainWindowEvents.cpp
     ./myLabel.cpp
+    ./nameList.cpp
     ./processCommandLine.cpp
     ./getOrientation.cpp
     ./exif/exif.cpp

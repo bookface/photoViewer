@@ -25,6 +25,7 @@
 #include <time.h>
 
 #include "sleepyTime.h"
+#include "nameList.h"
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 // This loads the slide show as a background thread.  The main window
@@ -35,7 +36,9 @@
 class LoadSlideShow : public QRunnable {
     
     MainWindow *_win;
+
   public:
+
     LoadSlideShow(MainWindow *win) {
         _win = win;
     }
@@ -43,7 +46,11 @@ class LoadSlideShow : public QRunnable {
     void run() override {
         if (!_win->loadImagesFromDirectoryName(_win->_directory.toString())) {
             QMessageBox box;
-            box.setText("No Images found");
+            if (_win->_readNames.toBool()) {
+                box.setText(QString("Names List File %1 not found").arg(_win->_namesFile));
+            } else {
+                box.setText("No Images found in directory");
+            }
             box.exec();
             exit(0);
         }
@@ -78,6 +85,10 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _fullscreen = settings.value("Fullscreen",false).value<bool>() ||
         settings.value("FullScreen",false).value<bool>();
     
+    _namesFile = settings.value("NamesFile",_namesFile).value<QString>();
+    _readNames = settings.value("ReadNames",_readNames).value<bool>();
+    _saveNames = settings.value("SaveNames",_saveNames).value<bool>();
+
     _sqlite = settings.value("SqLite","").toString();
     if (_sqlite != "") qDebug() << "SqLite" << _sqlite;
     
@@ -240,6 +251,12 @@ void MainWindow::prevImage(void)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 {
+// read pre-saved list of file names
+    if (_readNames.toBool()) {
+        _names = readListFromFile(_namesFile);
+        return _names.size() > 0 ? true : false;
+    }
+
     QDirIterator it(dirName, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QString name = it.next();
@@ -251,6 +268,11 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
             }
         }
     }
+
+// save the file names
+    if (_saveNames.toBool())
+        writeListToFile(_names, _namesFile);
+
     return _names.size() > 0 ? true : false;
 }
 

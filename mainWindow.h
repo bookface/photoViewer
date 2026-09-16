@@ -82,7 +82,13 @@ class MainWindow : public QMainWindow {
     QVariant _hideCursor = true;
     QVariant _randomMode = true;
     QVariant _fullscreen = true;
+
+    QString  _namesFile  = "names.txt";
+    QVariant _readNames  = false;       // load file names from namesFile
+    QVariant _saveNames  = false;       // save file names to namesFile
+
     QString  _sqlite     = "";
+
   protected:
 
     void setScreenSize(void);
