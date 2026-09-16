@@ -3,9 +3,6 @@
 I wasn't able to find a good slide show program for the Raspberry Pi,
 so I wrote my own.
 
-Over time the plan is to expand this into a full image viewer application,
-but right now it's just a slide show.
-
 ---------------------------------------------------------------------------
 Just compile with cmake and supply an .ini file (see below).
 Remember to copy the qt plugins directory "imageformats" here.
@@ -42,6 +39,15 @@ Random = <boolean>
 ;#Hide the curor, default true
 
 HideCursor = <boolean>
+
+;#name of file to save list to
+NamesFile = "names.txt"
+
+;# bool to save names
+SaveNames = <boolean>
+
+;# bool to read names
+ReadNames = <boolean>
 
 ---------------------------------------------------------------------------
 EXIF Orientation code copied from:
