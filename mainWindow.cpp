@@ -254,7 +254,8 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
 // read pre-saved list of file names
     if (_readNames.toBool()) {
         _names = readListFromFile(_namesFile);
-        return _names.size() > 0 ? true : false;
+    // if loaded, return true, else continue on
+        if (_names.size() > 0 ) return true;
     }
 
     QDirIterator it(dirName, QDirIterator::Subdirectories);
