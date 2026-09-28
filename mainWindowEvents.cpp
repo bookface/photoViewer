@@ -55,9 +55,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         setScreenSize();
         break;
       case Qt::Key_N:
+      case Qt::Key_Space:
         nextImage();
         break;
       case Qt::Key_P:
+      case Qt::Key_Backspace:
         prevImage();
         break;
       default:
