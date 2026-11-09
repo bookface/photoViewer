@@ -44,6 +44,7 @@ HideCursor = <boolean>
 NamesFile = "names.txt"
 
 ;# bool to save names
+; To create a new list, delete 'NamesFile' first
 SaveNames = <boolean>
 
 ;# bool to read names

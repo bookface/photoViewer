@@ -88,7 +88,6 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
     _namesFile = settings.value("NamesFile",_namesFile).value<QString>();
     _readNames = settings.value("ReadNames",_readNames).value<bool>();
     _saveNames = settings.value("SaveNames",_saveNames).value<bool>();
-
     _sqlite = settings.value("SqLite","").toString();
     if (_sqlite != "") qDebug() << "SqLite" << _sqlite;
     
@@ -126,7 +125,7 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
             exit(0);
         }
     }
-
+    
 // Set the size of the screen
     setStyleSheet("QMainWindow {background: 'black';}");
     if (!_fullscreen.toBool()) {
@@ -199,7 +198,6 @@ MainWindow::MainWindow(QStringList args, QWidget *parent)
 void MainWindow::nextImage(void)
 {
     qDebug() << "next image";
-#if 1
     if (_usesqlite) {
         QString next = _rrList.getNext();
         if (next == "") return;         // not enough in list
@@ -207,17 +205,9 @@ void MainWindow::nextImage(void)
         _imagetimer->start();
         return;
     }
-#endif
 
-#if 0
-    if (_usesqlite) {
-        showImage();
-        _imagetimer->start();
-        return;
-    }
-#endif
-    
     if (_names.size() == 0 ) return;    // single image display
+
     ++_lastN;
     if (_lastN == _names.size()) {
         _lastN = 0;
@@ -258,18 +248,35 @@ bool MainWindow::loadImagesFromDirectoryName(const QString &dirName)
         if (_names.size() > 0 ) return true;
     }
 
+// 2026_11_09 - use filter for files instead of QImageReader.
+// filters are case-insensitive
+    
+    QStringList filters;
+    filters << "*.png" << "*.jpg" << "*.gif" << "bmp";
+    QDirIterator it(dirName,
+                    filters,
+                    QDir::Files,
+                    QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        _names.push_back(it.next());
+    }
+
+// old QImageReader method
+#if 0
     QDirIterator it(dirName, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QString name = it.next();
         QFileInfo info(name);
         if (!info.isDir()) {
+            auto ext = info.suffix();
             QImageReader qImageReader(name);
             if (qImageReader.canRead()) {
                 _names.push_back(name);
             }
         }
     }
-
+#endif
+    
 // save the file names
     if (_saveNames.toBool())
         writeListToFile(_names, _namesFile);

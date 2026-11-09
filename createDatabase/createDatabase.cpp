@@ -1,6 +1,16 @@
 //-*-c++-*-
 //-*- coding: utf-8 -*-
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+//
+// This creates a sqlite database from a list of file names. Using the
+// sqlite database causes photoViewer to crash after a running for a
+// while, so this is no longer used.  Someday I'll figure it out.
+//
+// Now I just create a text file with a list of the file names.
+// This is done in the main photoViewer program by using
+// SaveNames in the ini file.
+//
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 /*$C gcc -std=c++20 createDatabase.cpp -o createDatabase -Isqlite -Lsqlite -l:sqlite3.a -lstdc++ */
 
 #include <iostream>
